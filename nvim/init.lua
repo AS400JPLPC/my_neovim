@@ -4,10 +4,9 @@ vim.opt.tabstop = 4            -- Tabulations à 4 espaces
 vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 vim.opt.termguicolors = true    -- Pour les couleurs VTE (Memory n°2)
---vim.opt.textwidth = 120        -- Lignes de 120 caractères (Memory n°10)
 -- Définit une largeur de texte généreuse (optionnel)
-max_width = 120
-comment_width = 120
+max_width = 120       -- Lignes de 120 caractères 
+comment_width = 120       -- Lignes de 120 caractères 
 wrap_comments = false
 
 
@@ -146,14 +145,11 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 -- Raccourcis en mode NORMAL (équivalent à [keys.normal])
 vim.keymap.set('n', '<C-a>', ':vsplit /home/soleil/Zsnipset<CR>', { desc = "Ouvrir Zsnipset dans une split verticale" })
 vim.keymap.set('n', '<C-s>', ':write<CR>', { desc = "Sauvegarder" })
---vim.keymap.set('n', '<C-c>', '+y', { desc = "Copier dans le presse-papiers" })  -- `yank_main_selection_to_clipboard`
 vim.keymap.set('n', '<C-v>', '"+p', { desc = "Coller depuis le presse-papiers" })  -- `replace_selections_with_clipboard`
 --vim.keymap.set('n', '<C-r>', function() vim.cmd('nohlsearch') vim.cmd('%s//g') end, { desc = "Remplacer et sauvegarder" })  -- Simplifié
 vim.keymap.set('n', '<C-l>', '"+y', { desc = "Effacer le registre (simplifié)" })  -- `:clear-register` n'existe pas en natif
 vim.keymap.set('n', '<C-d>', 'd', { desc = "Supprimer la sélection" })
 vim.keymap.set('n', '<C-q>', '/', { desc = "Rechercher" })  -- `search`
---vim.keymap.set('n', '<A-i>', 'I', { desc = "Insérer au début de la ligne" })  -- `insert_at_line_start`
---vim.keymap.set('n', '<A-e>', 'A', { desc = "Insérer à la fin de la ligne" })  -- `insert_at_line_end`
 vim.keymap.set('n', '<A-m>', '%', { desc = "Aller à la parenthèse correspondante" })  -- `match_brackets`
 vim.keymap.set('n', '<A-f>', ':FZF<CR>', { desc = "Ouvrir le file picker (nécessite fzf)" })  -- `file_picker_in_current_directory`
 vim.keymap.set('n', '<A-F>', ':FZF ~/<CR>', { desc = "Ouvrir le file picker global" })  -- `file_picker`
@@ -179,7 +175,6 @@ vim.keymap.set('i', '<C-c>', '<Esc>"+yiw', { desc = "Copier dans le presse-papie
 vim.keymap.set('i', '<C-v>', '<Esc>"+pa', { desc = "Coller depuis le presse-papiers" })
 vim.keymap.set('i', '<C-l>', '<Esc>"+y', { desc = "Effacer le registre (simplifié)" })
 vim.keymap.set('i', '<C-d>', '<Esc>dwi', { desc = "Supprimer le mot" })
---vim.keymap.set('i', '<C-x>', '<C-x><C-o>', { desc = "Complétion" })  -- `completion`
 vim.keymap.set('i', '<C-t>', '<Esc>:lua vim.cmd("normal! gcc")<CR>a', { desc = "Commenter la ligne" })
 vim.keymap.set('i', '<A-m>', '<Esc>%', { desc = "Aller à la parenthèse correspondante" })
 
@@ -205,18 +200,14 @@ vim.keymap.set('n', 'r', '<C-r>', { desc = "Rétablir" })                       
 vim.keymap.set('n', 'n', 'n', { desc = "Rechercher l'occurrence suivante" })         -- `search_next` (déjà natif)
 vim.keymap.set('n', 'N', 'N', { desc = "Rechercher l'occurrence précédente" })       -- `search_prev` (déjà natif)
 
---vim.keymap.set('n', ':', ':', { desc = "Mode commande" })                           -- `command_mode` (déjà natif)
---vim.keymap.set('n', 'i', 'i', { desc = "Mode insertion" })                          -- `insert_mode` (déjà natif)
---vim.keymap.set('n', '<Esc>', '<Esc>', { desc = "Mode normal" })                     -- `normal_mode` (déjà natif)
 
 vim.keymap.set('n', '<M-ù>', ':set list!<CR>', { desc = "Basculer l'affichage des caractères spéciaux" })
---vim.keymap.set('n', '<M-ù', ':lua require("ibl").toggle()<CR>', { desc = "Basculer les guides d'indentation" })
 
 
 
 -- Configuration des couleurs (thème minimaliste)
 vim.opt.background = "dark"  -- Fond sombre
-
+-- .origine Mistral
 --  highlight Comment guifg=#7f7f7f ctermfg=8    -- Commentaires en gris discret
 --  highlight String guifg=#a5c261 ctermfg=142   -- Chaînes en vert
 --  highlight Keyword guifg=#ff9d00 ctermfg=208  -- Mots-clés Rust en orange
@@ -245,11 +236,7 @@ vim.opt.expandtab = true -- Remplace les tabulations par des espaces (pour cohé
 -- Afficher les caractères spéciaux (tabulations, espaces, sauts de ligne)
 vim.opt.list = true
 vim.opt.listchars = {
---  tab = '│',      -- Affiche les tabulations comme "│" (ligne verticale + flèche)
---  trail = '·',     -- Espaces en fin de ligne
---  nbsp = '␣',      -- Espaces insécables
   eol = '¶',       -- Saut de ligne
---  space = ' ',     -- Espace normal (invisible, mais peut être personnalisé)
 }
 
 -- Surligner la ligne du curseur
