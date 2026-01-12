@@ -1,0 +1,298 @@
+-- Options de base (comme Helix, sans verbosité)
+vim.opt.number = true          -- Numéros de ligne
+vim.opt.tabstop = 4            -- Tabulations à 4 espaces
+vim.opt.shiftwidth = 4
+vim.opt.expandtab = true
+vim.opt.termguicolors = true    -- Pour les couleurs VTE (Memory n°2)
+--vim.opt.textwidth = 120        -- Lignes de 120 caractères (Memory n°10)
+-- Définit une largeur de texte généreuse (optionnel)
+max_width = 120
+comment_width = 120
+wrap_comments = false
+
+
+
+
+-- Configuration minimaliste et optimisée pour rust-analyzer
+vim.api.nvim_create_autocmd('BufEnter', {
+  pattern = '*.rs',
+  callback = function()
+    vim.lsp.start({
+      name = 'rust-analyzer',
+      cmd = { os.getenv('HOME') .. '/.cargo/bin/rust-analyzer' },
+      root_dir = vim.fs.dirname(vim.fs.find({'Cargo.toml'}, { upward = true })[1]),
+      settings = {
+        ['rust-analyzer'] = {
+          cargo = {
+            features = 'all',
+            buildScripts = { enable = true },
+          },
+          check = {
+            command = 'clippy',
+            extraArgs = { '--no-deps' },
+          },
+          checkOnSave = {
+            enable = true,
+            command = 'clippy',
+            extraArgs = { '--no-deps' },
+          },
+          diagnostics = {
+            enable = true,
+            experimental = { enable = true },
+          },
+          procMacro = { enable = true },
+          lens = { enable = true },
+          files = {
+            excludeDirs = { "target/", ".git/" },
+          },
+          cachePriming = { enable = false },
+          -- NOUVELLE SECTION : Configuration de rustfmt pour les commentaires
+          rustfmt = {
+            extraArgs = {
+              "--comment-width=120",  -- Largeur des commentaires
+              "--wrap-comments=false", -- Pas de retour à la ligne automatique
+            },
+          },
+        }
+      },
+      on_attach = function(client, bufnr)
+        client.server_capabilities.documentFormattingProvider = false
+        vim.api.nvim_create_autocmd('CursorHold', {
+          buffer = bufnr,
+          callback = function()
+            vim.diagnostic.open_float(nil, { focusable = false })
+          end
+        })
+      end,
+    })
+  end
+})
+
+
+-- Désactive les logs LSP (pour éviter la pollution)
+vim.lsp.set_log_level("warn")  -- N'affiche que les warnings et erreurs (pas les infos)
+
+-- Configuration pour les diagnostics (version ultra-simple)
+vim.diagnostic.config({
+  virtual_text = { prefix = "●" },  -- Symbole devant les erreurs
+  virtual_text = true,  -- Affiche les erreurs en ligne
+  signs = true,         -- Icônes dans la marge
+  update_in_insert = false,
+  float = { border = "rounded" },
+})
+
+-- Fonction pour afficher les erreurs en bas
+function _G.show_diagnostics()
+  local diagnostics = vim.diagnostic.get(0)
+  if #diagnostics > 0 then
+    vim.diagnostic.setloclist()  -- Remplit la location-list avec les erreurs
+    vim.cmd("lopen")             -- Ouvre la liste en bas
+  else
+    vim.cmd("lclose")            -- Ferme la liste si pas d'erreurs
+  end
+end
+
+-- Affichage automatique après sauvegarde
+vim.api.nvim_create_autocmd("BufWritePost", {
+  pattern = "*.rs",
+  callback = function()
+    vim.defer_fn(function() show_diagnostics() end, 500)  -- Délai de 500ms
+  end
+})
+
+-- Naviguer entre les erreurs
+vim.keymap.set('n', '<A-n>', ':lnext<CR>', { desc = "Erreur suivante" })
+vim.keymap.set('n', '<A-p>', ':lprev<CR>', { desc = "Erreur précédente" })
+vim.keymap.set('n', '<A-c>', ':lclose<CR>', { desc = "Fermer la liste des erreurs" })
+vim.keymap.set('i', '<A-n>', ':lnext<CR>', { desc = "Erreur suivante" })
+vim.keymap.set('i', '<A-p>', ':lprev<CR>', { desc = "Erreur précédente" })
+vim.keymap.set('i', '<A-c>', ':lclose<CR>', { desc = "Fermer la liste des erreurs" })
+
+-- Charger le plugin Comment.nvim
+vim.cmd('packadd nvim-comment')
+-- Configuration de Comment.nvim
+require('nvim_comment').setup()
+
+
+
+
+
+-- Désactiver les touches de fonction (comme dans Helix)  
+for i =1, 12 do
+  vim.keymap.set({'n', 'i'}, '<F' .. i .. '>', '<Nop>')
+end
+
+
+-- Activer le registre "+" comme presse-papiers par défaut
+vim.opt.clipboard = 'unnamedplus'
+
+-- Raccourci pour copier dans le presse-papiers (mode normal + visuel)
+vim.keymap.set({'n', 'v'}, '<C-c>', '"+y', { desc = "Copier dans le presse-papiers" })
+
+-- Solution de secours si le presse-papiers ne répond pas
+vim.api.nvim_create_autocmd('TextYankPost', {
+  group = vim.api.nvim_create_augroup('YankToClipboard', { clear = true }),
+  callback = function()
+    if vim.v.event.operator == 'y' then
+      vim.fn.system('xclip -selection clipboard', vim.fn.getreg('+'))
+    end
+  end
+})
+
+
+
+
+
+-- Raccourcis en mode NORMAL (équivalent à [keys.normal])
+vim.keymap.set('n', '<C-a>', ':vsplit /home/soleil/Zsnipset<CR>', { desc = "Ouvrir Zsnipset dans une split verticale" })
+vim.keymap.set('n', '<C-s>', ':write<CR>', { desc = "Sauvegarder" })
+--vim.keymap.set('n', '<C-c>', '+y', { desc = "Copier dans le presse-papiers" })  -- `yank_main_selection_to_clipboard`
+vim.keymap.set('n', '<C-v>', '"+p', { desc = "Coller depuis le presse-papiers" })  -- `replace_selections_with_clipboard`
+--vim.keymap.set('n', '<C-r>', function() vim.cmd('nohlsearch') vim.cmd('%s//g') end, { desc = "Remplacer et sauvegarder" })  -- Simplifié
+vim.keymap.set('n', '<C-l>', '"+y', { desc = "Effacer le registre (simplifié)" })  -- `:clear-register` n'existe pas en natif
+vim.keymap.set('n', '<C-d>', 'd', { desc = "Supprimer la sélection" })
+vim.keymap.set('n', '<C-q>', '/', { desc = "Rechercher" })  -- `search`
+--vim.keymap.set('n', '<A-i>', 'I', { desc = "Insérer au début de la ligne" })  -- `insert_at_line_start`
+--vim.keymap.set('n', '<A-e>', 'A', { desc = "Insérer à la fin de la ligne" })  -- `insert_at_line_end`
+vim.keymap.set('n', '<A-m>', '%', { desc = "Aller à la parenthèse correspondante" })  -- `match_brackets`
+vim.keymap.set('n', '<A-f>', ':FZF<CR>', { desc = "Ouvrir le file picker (nécessite fzf)" })  -- `file_picker_in_current_directory`
+vim.keymap.set('n', '<A-F>', ':FZF ~/<CR>', { desc = "Ouvrir le file picker global" })  -- `file_picker`
+vim.keymap.set('n', '<A-w>', ':vnew<CR>', { desc = "new Split verticale" })  -- `vsplit_new`
+vim.keymap.set('n', '<A-v>', ':vsplit<CR>', { desc = "Split verticale" })  -- `vsplit`
+vim.keymap.set('n', '<A-g>', 'G', { desc = "Aller à la dernière ligne" })  -- `goto_last_line`
+vim.keymap.set('n', '<A-h>', vim.lsp.buf.hover, { desc = "Afficher l'aide (hover)" })  -- `hover`
+
+-- Mapping pour commenter un bloc en mode visuel
+vim.keymap.set('v', '<C-t>', ':CommentToggle<CR>', { desc = "Commenter le bloc" })
+
+
+
+
+
+
+
+
+
+-- Raccourcis en mode INSERT (équivalent à [keys.insert])
+vim.keymap.set('i', '<C-s>', '<Esc>:write<CR>a', { desc = "Sauvegarder et rester en mode insert" })
+vim.keymap.set('i', '<C-c>', '<Esc>"+yiw', { desc = "Copier dans le presse-papiers" })
+vim.keymap.set('i', '<C-v>', '<Esc>"+pa', { desc = "Coller depuis le presse-papiers" })
+vim.keymap.set('i', '<C-l>', '<Esc>"+y', { desc = "Effacer le registre (simplifié)" })
+vim.keymap.set('i', '<C-d>', '<Esc>dwi', { desc = "Supprimer le mot" })
+--vim.keymap.set('i', '<C-x>', '<C-x><C-o>', { desc = "Complétion" })  -- `completion`
+vim.keymap.set('i', '<C-t>', '<Esc>:lua vim.cmd("normal! gcc")<CR>a', { desc = "Commenter la ligne" })
+vim.keymap.set('i', '<A-m>', '<Esc>%', { desc = "Aller à la parenthèse correspondante" })
+
+
+
+vim.keymap.set('n', '<Del>', 'x', { desc = "Supprimer le caractère sous le curseur" })  -- `delete_char_forward`
+vim.keymap.set('n', '<Up>', 'k', { desc = "Monter d'une ligne" })                     -- `move_visual_line_up`
+vim.keymap.set('n', '<Down>', 'j', { desc = "Descendre d'une ligne" })               -- `move_visual_line_down`
+vim.keymap.set('n', '<Left>', 'h', { desc = "Aller à gauche" })                      -- `move_char_left`
+vim.keymap.set('n', '<Right>', 'l', { desc = "Aller à droite" })                     -- `move_char_right`
+vim.keymap.set('n', '<PageUp>', '<C-b>', { desc = "Page précédente" })               -- `page_up`
+vim.keymap.set('n', '<PageDown>', '<C-f>', { desc = "Page suivante" })               -- `page_down`
+vim.keymap.set('n', '<Home>', '^', { desc = "Aller au début de la ligne" })          -- `goto_line_start`
+vim.keymap.set('n', '<End>', 'g_', { desc = "Aller à la fin de la ligne" })          -- `goto_line_end_newline`
+vim.keymap.set('n', '<CR>', 'o', { desc = "Insérer une nouvelle ligne" })            -- `insert_newline` (en mode normal, `<CR>` = `o` pour une nouvelle ligne)
+
+-- Raccourci pour abandonner une commande en cours
+vim.keymap.set('n', '<C-q>', '<Esc>:nohlsearch<CR>:echo "Commande abandonnée"<CR>', { desc = "Abandonner la commande" })
+
+vim.keymap.set('n', 'u', 'u', { desc = "Annuler" })                                  -- `undo` (déjà natif)
+vim.keymap.set('n', 'r', '<C-r>', { desc = "Rétablir" })                             -- `redo` (Neovim: `<C-r>`)
+
+vim.keymap.set('n', 'n', 'n', { desc = "Rechercher l'occurrence suivante" })         -- `search_next` (déjà natif)
+vim.keymap.set('n', 'N', 'N', { desc = "Rechercher l'occurrence précédente" })       -- `search_prev` (déjà natif)
+
+--vim.keymap.set('n', ':', ':', { desc = "Mode commande" })                           -- `command_mode` (déjà natif)
+--vim.keymap.set('n', 'i', 'i', { desc = "Mode insertion" })                          -- `insert_mode` (déjà natif)
+--vim.keymap.set('n', '<Esc>', '<Esc>', { desc = "Mode normal" })                     -- `normal_mode` (déjà natif)
+
+vim.keymap.set('n', '<M-ù>', ':set list!<CR>', { desc = "Basculer l'affichage des caractères spéciaux" })
+--vim.keymap.set('n', '<M-ù', ':lua require("ibl").toggle()<CR>', { desc = "Basculer les guides d'indentation" })
+
+
+
+-- Configuration des couleurs (thème minimaliste)
+vim.opt.background = "dark"  -- Fond sombre
+
+--  highlight Comment guifg=#7f7f7f ctermfg=8    -- Commentaires en gris discret
+--  highlight String guifg=#a5c261 ctermfg=142   -- Chaînes en vert
+--  highlight Keyword guifg=#ff9d00 ctermfg=208  -- Mots-clés Rust en orange
+--  highlight Function guifg=#51afef ctermfg=39  -- Fonctions en bleu
+--  highlight Type guifg=#ffd700 ctermfg=220     -- Types en jaune
+--  highlight Error guifg=#ff0000 guibg=NONE ctermfg=196  -- Erreurs en rouge vif
+
+
+vim.cmd([[
+  highlight Comment guifg=#af875f ctermfg=137
+  highlight String guifg=#5fff5f ctermfg=83
+  highlight Keyword guifg=#ff9d00 ctermfg=208
+  highlight Function guifg=#0db5ec ctermfg=51
+  highlight Type guifg=#ffd700 ctermfg=220
+  highlight Error guifg=#ff0000 guibg=NONE ctermfg=196
+]])
+
+
+
+
+-- Options pour afficher les tabulations comme 4 espaces (alignement horizontal clair)
+vim.opt.tabstop = 4      -- Une tabulation = 4 colonnes (déjà dans votre config)
+vim.opt.shiftwidth = 4   -- Indentation automatique à 4 colonnes
+vim.opt.expandtab = true -- Remplace les tabulations par des espaces (pour cohérence)
+
+-- Afficher les caractères spéciaux (tabulations, espaces, sauts de ligne)
+vim.opt.list = true
+vim.opt.listchars = {
+--  tab = '│',      -- Affiche les tabulations comme "│" (ligne verticale + flèche)
+--  trail = '·',     -- Espaces en fin de ligne
+--  nbsp = '␣',      -- Espaces insécables
+  eol = '¶',       -- Saut de ligne
+--  space = ' ',     -- Espace normal (invisible, mais peut être personnalisé)
+}
+
+-- Surligner la ligne du curseur
+vim.opt.cursorline = true
+vim.cmd([[
+  highlight CursorLine guibg=#2a2a2a ctermbg=234
+]])
+
+-- Configuration minimaliste pour ibl (anciennement indent-blankline)
+local ibl = require("ibl")
+
+vim.cmd([[
+  highlight IblIndentChar guifg=#2a2a2a ctermfg=234
+]])
+ibl.setup({
+  indent = {
+    char = "│",
+    highlight = {"IblIndentChar"},
+  },
+  scope = { enabled = false },
+})
+
+
+
+
+-- Aller à une ligne avec `<A-g>` (ex: `<A-g>120`)
+vim.keymap.set('n', '<C-g>', function()
+  local line = vim.fn.input('Ligne: ')
+  if line ~= '' then
+    vim.cmd(':' .. line)
+  end
+end, { desc = "Aller à la ligne" })
+
+
+-- Fermer le buffer comme dans Helix (avec confirmation)
+vim.keymap.set('n', '<C-e>', ':bd<CR>', { desc = "Fermer le fichier" })
+vim.api.nvim_create_autocmd('BufEnter', {
+  nested = true,
+  callback = function()
+    if #vim.api.nvim_list_wins() == 1 and vim.bo.filetype == 'neo-tree' then
+      vim.cmd('quit')
+    end
+  end
+})
+
+
