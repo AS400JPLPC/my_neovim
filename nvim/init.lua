@@ -10,62 +10,50 @@ comment_width = 120       -- Lignes de 120 caractères
 wrap_comments = false
 
 
-
-
--- Configuration minimaliste et optimisée pour rust-analyzer
-vim.api.nvim_create_autocmd('BufEnter', {
-  pattern = '*.rs',
-  callback = function()
-    vim.lsp.start({
-      name = 'rust-analyzer',
-      cmd = { os.getenv('HOME') .. '/.cargo/bin/rust-analyzer' },
-      root_dir = vim.fs.dirname(vim.fs.find({'Cargo.toml'}, { upward = true })[1]),
-      settings = {
-        ['rust-analyzer'] = {
-          cargo = {
-            features = 'all',
-            buildScripts = { enable = true },
-          },
-          check = {
-            command = 'clippy',
-            extraArgs = { '--no-deps' },
-          },
-          checkOnSave = {
-            enable = true,
-            command = 'clippy',
-            extraArgs = { '--no-deps' },
-          },
-          diagnostics = {
-            enable = true,
-            experimental = { enable = true },
-          },
-          procMacro = { enable = true },
-          lens = { enable = true },
-          files = {
-            excludeDirs = { "target/", ".git/" },
-          },
-          cachePriming = { enable = false },
-          -- NOUVELLE SECTION : Configuration de rustfmt pour les commentaires
-          rustfmt = {
-            extraArgs = {
-              "--comment-width=120",  -- Largeur des commentaires
-              "--wrap-comments=false", -- Pas de retour à la ligne automatique
-            },
-          },
-        }
+-- Configuration optimisée pour rust-analyzer (avec lspconfig)
+local lspconfig = require('lspconfig')
+lspconfig.rust_analyzer.setup({
+  cmd = { os.getenv('HOME') .. '/.cargo/bin/rust-analyzer' },
+  settings = {
+    ['rust-analyzer'] = {
+      cargo = {
+        features = 'all',
+        buildScripts = { enable = true },
       },
-      on_attach = function(client, bufnr)
-        client.server_capabilities.documentFormattingProvider = false
-        vim.api.nvim_create_autocmd('CursorHold', {
-          buffer = bufnr,
-          callback = function()
-            vim.diagnostic.open_float(nil, { focusable = false })
-          end
-        })
-      end,
+      check = {
+        command = 'clippy',
+        extraArgs = { '--no-deps' },
+      },
+      checkOnSave = {
+        enable = true,
+        command = 'clippy',
+        extraArgs = { '--no-deps' },
+      },
+      rustfmt = {
+        extraArgs = {
+          "--comment-width=120",
+          "--wrap-comments=false",
+        },
+      },
+      procMacro = { enable = true },
+      files = {
+        excludeDirs = { "target/", ".git/" },
+      },
+      cachePriming = { enable = false },
+    },
+  },
+  on_attach = function(client, bufnr)
+    client.server_capabilities.documentFormattingProvider = false
+    vim.api.nvim_create_autocmd('CursorHold', {
+      buffer = bufnr,
+      callback = function()
+        vim.diagnostic.open_float(nil, { focusable = false })
+      end
     })
-  end
+  end,
 })
+
+
 
 
 -- Désactive les logs LSP (pour éviter la pollution)
@@ -238,6 +226,9 @@ vim.opt.list = true
 vim.opt.listchars = {
   eol = '¶',       -- Saut de ligne
 }
+vim.cmd([[
+  highlight NonText  guifg=#461613
+]])
 
 -- Surligner la ligne du curseur
 vim.opt.cursorline = true
@@ -271,15 +262,13 @@ vim.keymap.set('n', '<C-g>', function()
 end, { desc = "Aller à la ligne" })
 
 
--- Fermer le buffer comme dans Helix (avec confirmation)
-vim.keymap.set('n', '<C-e>', ':bd<CR>', { desc = "Fermer le fichier" })
-vim.api.nvim_create_autocmd('BufEnter', {
-  nested = true,
-  callback = function()
-    if #vim.api.nvim_list_wins() == 1 and vim.bo.filetype == 'neo-tree' then
-      vim.cmd('quit')
-    end
-  end
-})
 
 
+
+-- Fermer le buffer courant et revenir sur netrw (version ultra-minimaliste)
+vim.keymap.set('n', '<C-e>', function()
+  vim.cmd('only')  -- Ne garder qu'une seule fenêtre
+  vim.cmd('bd')    -- Fermer le buffer courant (sans vérification)
+  vim.cmd('Ntree') -- Ouvrir netrw dans la fenêtre courante
+  print(" ")
+end, { desc = "Fermer le buffer et revenir sur l'explorateur de fichiers" })
