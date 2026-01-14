@@ -10,6 +10,7 @@ comment_width = 120       -- Lignes de 120 caractères
 wrap_comments = false
 
 
+
 -- Configuration optimisée pour rust-analyzer (avec lspconfig)
 local lspconfig = require('lspconfig')
 lspconfig.rust_analyzer.setup({
@@ -39,6 +40,10 @@ lspconfig.rust_analyzer.setup({
       files = {
         excludeDirs = { "target/", ".git/" },
       },
+      -- Réduit la verbosité des logs
+      logs = {
+        level = "error",  -- Affiche seulement les erreurs (pas les warnings)
+      },
       cachePriming = { enable = false },
     },
   },
@@ -58,6 +63,8 @@ lspconfig.rust_analyzer.setup({
 
 -- Désactive les logs LSP (pour éviter la pollution)
 vim.lsp.set_log_level("warn")  -- N'affiche que les warnings et erreurs (pas les infos)
+
+
 
 -- Configuration pour les diagnostics (version ultra-simple)
 vim.diagnostic.config({
@@ -91,9 +98,11 @@ vim.api.nvim_create_autocmd("BufWritePost", {
 vim.keymap.set('n', '<A-n>', ':lnext<CR>', { desc = "Erreur suivante" })
 vim.keymap.set('n', '<A-p>', ':lprev<CR>', { desc = "Erreur précédente" })
 vim.keymap.set('n', '<A-c>', ':lclose<CR>', { desc = "Fermer la liste des erreurs" })
+
 vim.keymap.set('i', '<A-n>', ':lnext<CR>', { desc = "Erreur suivante" })
 vim.keymap.set('i', '<A-p>', ':lprev<CR>', { desc = "Erreur précédente" })
 vim.keymap.set('i', '<A-c>', ':lclose<CR>', { desc = "Fermer la liste des erreurs" })
+
 
 -- Charger le plugin Comment.nvim
 vim.cmd('packadd nvim-comment')
@@ -110,37 +119,15 @@ for i =1, 12 do
 end
 
 
--- Activer le registre "+" comme presse-papiers par défaut
-vim.opt.clipboard = 'unnamedplus'
-
--- Raccourci pour copier dans le presse-papiers (mode normal + visuel)
-vim.keymap.set({'n', 'v'}, '<C-c>', '"+y', { desc = "Copier dans le presse-papiers" })
-
--- Solution de secours si le presse-papiers ne répond pas
-vim.api.nvim_create_autocmd('TextYankPost', {
-  group = vim.api.nvim_create_augroup('YankToClipboard', { clear = true }),
-  callback = function()
-    if vim.v.event.operator == 'y' then
-      vim.fn.system('xclip -selection clipboard', vim.fn.getreg('+'))
-    end
-  end
-})
-
-
-
+--les commandes 
+-- copy delete paste sont integre dans le system neovim 
 
 
 -- Raccourcis en mode NORMAL (équivalent à [keys.normal])
 vim.keymap.set('n', '<C-a>', ':vsplit /home/soleil/Zsnipset<CR>', { desc = "Ouvrir Zsnipset dans une split verticale" })
 vim.keymap.set('n', '<C-s>', ':write<CR>', { desc = "Sauvegarder" })
-vim.keymap.set('n', '<C-v>', '"+p', { desc = "Coller depuis le presse-papiers" })  -- `replace_selections_with_clipboard`
---vim.keymap.set('n', '<C-r>', function() vim.cmd('nohlsearch') vim.cmd('%s//g') end, { desc = "Remplacer et sauvegarder" })  -- Simplifié
-vim.keymap.set('n', '<C-l>', '"+y', { desc = "Effacer le registre (simplifié)" })  -- `:clear-register` n'existe pas en natif
-vim.keymap.set('n', '<C-d>', 'd', { desc = "Supprimer la sélection" })
-vim.keymap.set('n', '<C-q>', '/', { desc = "Rechercher" })  -- `search`
+vim.keymap.set('n', '<A-q>', '/', { desc = "Rechercher" })  -- `qery search`
 vim.keymap.set('n', '<A-m>', '%', { desc = "Aller à la parenthèse correspondante" })  -- `match_brackets`
-vim.keymap.set('n', '<A-f>', ':FZF<CR>', { desc = "Ouvrir le file picker (nécessite fzf)" })  -- `file_picker_in_current_directory`
-vim.keymap.set('n', '<A-F>', ':FZF ~/<CR>', { desc = "Ouvrir le file picker global" })  -- `file_picker`
 vim.keymap.set('n', '<A-w>', ':vnew<CR>', { desc = "new Split verticale" })  -- `vsplit_new`
 vim.keymap.set('n', '<A-v>', ':vsplit<CR>', { desc = "Split verticale" })  -- `vsplit`
 vim.keymap.set('n', '<A-g>', 'G', { desc = "Aller à la dernière ligne" })  -- `goto_last_line`
@@ -152,18 +139,9 @@ vim.keymap.set('v', '<C-t>', ':CommentToggle<CR>', { desc = "Commenter le bloc" 
 
 
 
-
-
-
-
-
 -- Raccourcis en mode INSERT (équivalent à [keys.insert])
 vim.keymap.set('i', '<C-s>', '<Esc>:write<CR>a', { desc = "Sauvegarder et rester en mode insert" })
-vim.keymap.set('i', '<C-c>', '<Esc>"+yiw', { desc = "Copier dans le presse-papiers" })
-vim.keymap.set('i', '<C-v>', '<Esc>"+pa', { desc = "Coller depuis le presse-papiers" })
-vim.keymap.set('i', '<C-l>', '<Esc>"+y', { desc = "Effacer le registre (simplifié)" })
-vim.keymap.set('i', '<C-d>', '<Esc>dwi', { desc = "Supprimer le mot" })
-vim.keymap.set('i', '<C-t>', '<Esc>:lua vim.cmd("normal! gcc")<CR>a', { desc = "Commenter la ligne" })
+--vim.keymap.set('i', '<C-t>', '<Esc>:lua vim.cmd("normal! gcc")<CR>a', { desc = "Commenter la ligne" })
 vim.keymap.set('i', '<A-m>', '<Esc>%', { desc = "Aller à la parenthèse correspondante" })
 
 
@@ -179,8 +157,8 @@ vim.keymap.set('n', '<Home>', '^', { desc = "Aller au début de la ligne" })    
 vim.keymap.set('n', '<End>', 'g_', { desc = "Aller à la fin de la ligne" })          -- `goto_line_end_newline`
 vim.keymap.set('n', '<CR>', 'o', { desc = "Insérer une nouvelle ligne" })            -- `insert_newline` (en mode normal, `<CR>` = `o` pour une nouvelle ligne)
 
--- Raccourci pour abandonner une commande en cours
-vim.keymap.set('n', '<C-q>', '<Esc>:nohlsearch<CR>:echo "Commande abandonnée"<CR>', { desc = "Abandonner la commande" })
+
+
 
 vim.keymap.set('n', 'u', 'u', { desc = "Annuler" })                                  -- `undo` (déjà natif)
 vim.keymap.set('n', 'r', '<C-r>', { desc = "Rétablir" })                             -- `redo` (Neovim: `<C-r>`)
@@ -272,3 +250,14 @@ vim.keymap.set('n', '<C-e>', function()
   vim.cmd('Ntree') -- Ouvrir netrw dans la fenêtre courante
   print(" ")
 end, { desc = "Fermer le buffer et revenir sur l'explorateur de fichiers" })
+
+
+-- Vide l'historique 
+vim.keymap.set('n', '<C-l>', function()
+  vim.fn.histdel('/', -1)
+  vim.fn.histdel('?', -1)
+  vim.fn.histdel(':', -1)
+  vim.cmd('nohlsearch')
+  print("Historique  vidé.")
+end, { noremap = true, silent = false })
+
