@@ -216,7 +216,7 @@ vim.cmd([[
 
 -- Configuration minimaliste pour ibl (anciennement indent-blankline)
 local ibl = require("ibl")
-
+ibl.setup()
 vim.cmd([[
   highlight IblIndentChar guifg=#2a2a2a ctermfg=234
 ]])
