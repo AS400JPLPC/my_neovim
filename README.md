@@ -2,6 +2,9 @@
 neovim for rust   
   
 
+Start of real-time operation
+end of January end of tests init.lua 
+
   
 My configuration made with Mistral
 

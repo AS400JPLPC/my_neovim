@@ -173,21 +173,21 @@ vim.keymap.set('n', '<M-ù>', ':set list!<CR>', { desc = "Basculer l'affichage d
 
 -- Configuration des couleurs (thème minimaliste)
 vim.opt.background = "dark"  -- Fond sombre
--- .origine Mistral
---  highlight Comment guifg=#7f7f7f ctermfg=8    -- Commentaires en gris discret
---  highlight String guifg=#a5c261 ctermfg=142   -- Chaînes en vert
---  highlight Keyword guifg=#ff9d00 ctermfg=208  -- Mots-clés Rust en orange
---  highlight Function guifg=#51afef ctermfg=39  -- Fonctions en bleu
---  highlight Type guifg=#ffd700 ctermfg=220     -- Types en jaune
---  highlight Error guifg=#ff0000 guibg=NONE ctermfg=196  -- Erreurs en rouge vif
-
+--highlight Comment guifg=#af875f ctermfg=137    -- Commentaires brun
+--highlight String guifg=#00af00 ctermfg=34      -- Chaînes en vert
+--highlight Keyword guifg=#ff8700 ctermfg=208    -- Mots-clés Rust en orange
+--highlight Function guifg=#51afef ctermfg=39    -- Fonctions en bleu
+--highlight Type guifg=#d7d700 ctermfg=184       -- Types en jaune
+--highlight Identifier guifg=#d75fff ctermfg=170 -- identifier Orchid
+--highlight Error guifg=#ff0000 guibg=NONE ctermfg=196
 
 vim.cmd([[
   highlight Comment guifg=#af875f ctermfg=137
-  highlight String guifg=#5fff5f ctermfg=83
-  highlight Keyword guifg=#ff9d00 ctermfg=208
-  highlight Function guifg=#0db5ec ctermfg=51
-  highlight Type guifg=#ffd700 ctermfg=220
+  highlight String guifg=#00af00 ctermfg=34
+  highlight Keyword guifg=#ff8700 ctermfg=208
+  highlight Function guifg=#51afef ctermfg=39
+  highlight Type guifg=#d7d700 ctermfg=184
+  highlight Identifier guifg=#d75fff ctermfg=170
   highlight Error guifg=#ff0000 guibg=NONE ctermfg=196
 ]])
 
@@ -211,14 +211,14 @@ vim.cmd([[
 -- Surligner la ligne du curseur
 vim.opt.cursorline = true
 vim.cmd([[
-  highlight CursorLine guibg=#2a2a2a ctermbg=234
+  highlight CursorLine guibg=#1c1c1c ctermbg=234
 ]])
 
 -- Configuration minimaliste pour ibl (anciennement indent-blankline)
 local ibl = require("ibl")
 ibl.setup()
 vim.cmd([[
-  highlight IblIndentChar guifg=#2a2a2a ctermfg=234
+  highlight IblIndentChar guifg=#1c1c1c ctermfg=234
 ]])
 ibl.setup({
   indent = {
