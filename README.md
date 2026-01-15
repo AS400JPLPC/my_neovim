@@ -1,8 +1,7 @@
-# my_neovim
+
 neovim for rust   
   
 
-Start of real-time operation
 end of January end of tests init.lua 
 
   
@@ -22,9 +21,17 @@ I wanted to have very few dependencies in my configuration, which is why I downl
 [terrortylor/nvim-comment](https://github.com/terrortylor/nvim-comment)
 
 
+  
+  
 
 
+![2026-01-15_21-55-52_neovim_vte3](assset/2026-01-15_21-55-52_neovim_vte3.png)
+  
+  
+  
+  
 
+![2026-01-15_21-57-16_menu](assset/2026-01-15_21-57-16_menu.png)
 
 
   
