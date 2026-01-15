@@ -1,15 +1,66 @@
--- Options de base (comme Helix, sans verbosité)
+-- Options de base 
+-- ~/.config/nvim/init.lua (version Jean-Pierre Laroche, 2026)
+--.~/ with Mistral AI, which taught me a great deal
+
+
 vim.opt.number = true          -- Numéros de ligne
 vim.opt.tabstop = 4            -- Tabulations à 4 espaces
 vim.opt.shiftwidth = 4
-vim.opt.expandtab = true
-vim.opt.termguicolors = true    -- Pour les couleurs VTE (Memory n°2)
--- Définit une largeur de texte généreuse (optionnel)
+vim.opt.expandtab = true -- Remplace les tabulations par des espaces (pour cohérence)
+vim.opt.termguicolors = true    -- Pour les couleurs VTE 
+
 max_width = 120       -- Lignes de 120 caractères 
 comment_width = 120       -- Lignes de 120 caractères 
 wrap_comments = false
 
 
+
+--______________________________________________________________
+--. configuration de base du statusline 
+
+Statusline = {}
+
+-- études et dtricotage
+--function Statusline.active()
+    -- %f file %l ligne  %c colonne %M  modifier
+--    return "[%f]                                                                       position:[%l:%c] modifier:[%M]"
+--	end
+
+-- Définis la barre de statut 
+function Statusline.active()
+    local filename = vim.fn.expand("%:t")  -- Nom du fichier (ex: "main.rs")
+    local position = string.format("[%d:%d]", vim.fn.line("."), vim.fn.col("."))  -- Ex: "[42:10]"
+    local modified = vim.bo.modified and "[+]" or ""  -- "[+]" si modifié, sinon ""
+    -- Calcul du padding pour atteindre max_width (120) :
+    local padding = string.rep(" ", max_width - #filename - #position - #modified - 20)
+    return string.format("[%s]%s    position:%s modifier:%s", filename, padding, position, modified)
+end
+
+
+function Statusline.inactive()
+    return " %t"
+end
+	
+local group = vim.api.nvim_create_augroup("Statusline", { clear = true })
+
+vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
+    group = group,
+    desc = "Activate statusline on focus",
+    callback = function()
+        vim.opt_local.statusline = "%!v:lua.Statusline.active()"
+    end,
+})
+
+vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
+    group = group,
+    desc = "Deactivate statusline when unfocused",
+    callback = function()
+        vim.opt_local.statusline = "%!v:lua.Statusline.inactive()"
+    end,
+})
+
+
+--______________________________________________________________
 
 -- Configuration optimisée pour rust-analyzer (avec lspconfig)
 local lspconfig = require('lspconfig')
@@ -77,13 +128,13 @@ vim.diagnostic.config({
 
 -- Fonction pour afficher les erreurs en bas
 function _G.show_diagnostics()
-  local diagnostics = vim.diagnostic.get(0)
-  if #diagnostics > 0 then
-    vim.diagnostic.setloclist()  -- Remplit la location-list avec les erreurs
-    vim.cmd("lopen")             -- Ouvre la liste en bas
-  else
-    vim.cmd("lclose")            -- Ferme la liste si pas d'erreurs
-  end
+    local diagnostics = vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR })
+    if #diagnostics > 0 then
+        vim.diagnostic.setloclist({ open = false })
+        vim.cmd("lopen")
+    else
+        vim.cmd("lclose")
+    end
 end
 
 -- Affichage automatique après sauvegarde
@@ -104,21 +155,39 @@ vim.keymap.set('i', '<A-p>', ':lprev<CR>', { desc = "Erreur précédente" })
 vim.keymap.set('i', '<A-c>', ':lclose<CR>', { desc = "Fermer la liste des erreurs" })
 
 
--- Charger le plugin Comment.nvim
-vim.cmd('packadd nvim-comment')
--- Configuration de Comment.nvim
-require('nvim_comment').setup()
+-- Compile et exécute le code Rust actuel (sans sauvegarde préalable)
+vim.keymap.set('i', '<F12>', function()
+  vim.cmd('write!')  -- Sauvegarde temporaire (sans confirmation)
+  vim.cmd('!cargo run')
+end, { desc = "Exécute le code Rust (F5)" })
 
 
-
-
+--______________________________________________________________
 
 -- Désactiver les touches de fonction (comme dans Helix)  
-for i =1, 12 do
+for i =1, 11 do
   vim.keymap.set({'n', 'i'}, '<F' .. i .. '>', '<Nop>')
 end
 
+--______________________________________________________________
+-- les Plugins
+vim.cmd('packadd nvim-comment')
+require('nvim_comment').setup()
+-- Mapping pour commenter un bloc en mode visuel
+vim.keymap.set('v', '<C-t>', ':CommentToggle<CR>', { desc = "Commenter le bloc" })
 
+
+
+local ibl = require("ibl")
+vim.cmd([[
+  highlight IblIndentChar guifg=#1c1c1c ctermfg=234
+]])
+ibl.setup({
+    indent = { char = "│", highlight = {"IblIndentChar"} },
+    scope = { enabled = false },
+})
+
+--______________________________________________________________
 --les commandes 
 -- copy delete paste sont integre dans le system neovim 
 
@@ -133,8 +202,14 @@ vim.keymap.set('n', '<A-v>', ':vsplit<CR>', { desc = "Split verticale" })  -- `v
 vim.keymap.set('n', '<A-g>', 'G', { desc = "Aller à la dernière ligne" })  -- `goto_last_line`
 vim.keymap.set('n', '<A-h>', vim.lsp.buf.hover, { desc = "Afficher l'aide (hover)" })  -- `hover`
 
--- Mapping pour commenter un bloc en mode visuel
-vim.keymap.set('v', '<C-t>', ':CommentToggle<CR>', { desc = "Commenter le bloc" })
+vim.keymap.set('n', 'u', 'u', { desc = "Annuler" })                                  -- `undo` (déjà natif)
+vim.keymap.set('n', 'r', '<C-r>', { desc = "Rétablir" })                             -- `redo` (Neovim: `<C-r>`)
+vim.keymap.set('n', 'n', 'n', { desc = "Rechercher l'occurrence suivante" })         -- `search_next` (déjà natif)
+vim.keymap.set('n', 'N', 'N', { desc = "Rechercher l'occurrence précédente" })       -- `search_prev` (déjà natif)
+
+vim.keymap.set('n', '<M-ù>', ':set list!<CR>', { desc = "Basculer l'affichage des caractères spéciaux" })
+
+
 
 
 
@@ -158,18 +233,33 @@ vim.keymap.set('n', '<End>', 'g_', { desc = "Aller à la fin de la ligne" })    
 vim.keymap.set('n', '<CR>', 'o', { desc = "Insérer une nouvelle ligne" })            -- `insert_newline` (en mode normal, `<CR>` = `o` pour une nouvelle ligne)
 
 
+--______________________________________________________________
+-- goto ligne       ex: Ligne:235
+vim.keymap.set('n', '<C-g>', function()
+  local line = vim.ui.input({ prompt = "Ligne: " })
+  if line then vim.cmd(':' .. line) end
+end, { desc = "Aller à la ligne" })
+
+--______________________________________________________________
+-- Fermer le buffer courant et revenir sur ntree à utiliser avec précaution
+vim.keymap.set('n', '<C-e>', function()
+  vim.cmd('only')  -- Ne garder qu'une seule fenêtre
+  vim.cmd('bd')    -- Fermer le buffer courant (sans vérification)
+  vim.cmd('Ntree') -- Ouvrir netrw dans la fenêtre courante
+  print(" ")
+end, { desc = "Fermer le buffer et revenir sur l'explorateur de fichiers" })
+
+--______________________________________________________________
+-- Vide l'historique et bloqué la recherche antérieur avec let @/
+vim.keymap.set('n', '<C-l>', function()
+  vim.cmd(':let @/ = "" | nohlsearch')
+  vim.fn.histdel('?', -1)
+  vim.fn.histdel(':', -1)
+end, { desc = "Vider l'historique", silent = true })
 
 
-vim.keymap.set('n', 'u', 'u', { desc = "Annuler" })                                  -- `undo` (déjà natif)
-vim.keymap.set('n', 'r', '<C-r>', { desc = "Rétablir" })                             -- `redo` (Neovim: `<C-r>`)
 
-vim.keymap.set('n', 'n', 'n', { desc = "Rechercher l'occurrence suivante" })         -- `search_next` (déjà natif)
-vim.keymap.set('n', 'N', 'N', { desc = "Rechercher l'occurrence précédente" })       -- `search_prev` (déjà natif)
-
-
-vim.keymap.set('n', '<M-ù>', ':set list!<CR>', { desc = "Basculer l'affichage des caractères spéciaux" })
-
-
+--______________________________________________________________
 
 -- Configuration des couleurs (thème minimaliste)
 vim.opt.background = "dark"  -- Fond sombre
@@ -189,75 +279,15 @@ vim.cmd([[
   highlight Type guifg=#d7d700 ctermfg=184
   highlight Identifier guifg=#d75fff ctermfg=170
   highlight Error guifg=#ff0000 guibg=NONE ctermfg=196
+  highlight NonText guifg=#461613
+  highlight CursorLine guibg=#1c1c1c ctermbg=234
 ]])
-
-
-
-
--- Options pour afficher les tabulations comme 4 espaces (alignement horizontal clair)
-vim.opt.tabstop = 4      -- Une tabulation = 4 colonnes (déjà dans votre config)
-vim.opt.shiftwidth = 4   -- Indentation automatique à 4 colonnes
-vim.opt.expandtab = true -- Remplace les tabulations par des espaces (pour cohérence)
 
 -- Afficher les caractères spéciaux (tabulations, espaces, sauts de ligne)
 vim.opt.list = true
 vim.opt.listchars = {
   eol = '¶',       -- Saut de ligne
 }
-vim.cmd([[
-  highlight NonText  guifg=#461613
-]])
 
 -- Surligner la ligne du curseur
 vim.opt.cursorline = true
-vim.cmd([[
-  highlight CursorLine guibg=#1c1c1c ctermbg=234
-]])
-
--- Configuration minimaliste pour ibl (anciennement indent-blankline)
-local ibl = require("ibl")
-ibl.setup()
-vim.cmd([[
-  highlight IblIndentChar guifg=#1c1c1c ctermfg=234
-]])
-ibl.setup({
-  indent = {
-    char = "│",
-    highlight = {"IblIndentChar"},
-  },
-  scope = { enabled = false },
-})
-
-
-
-
--- Aller à une ligne avec `<A-g>` (ex: `<A-g>120`)
-vim.keymap.set('n', '<C-g>', function()
-  local line = vim.fn.input('Ligne: ')
-  if line ~= '' then
-    vim.cmd(':' .. line)
-  end
-end, { desc = "Aller à la ligne" })
-
-
-
-
-
--- Fermer le buffer courant et revenir sur netrw (version ultra-minimaliste)
-vim.keymap.set('n', '<C-e>', function()
-  vim.cmd('only')  -- Ne garder qu'une seule fenêtre
-  vim.cmd('bd')    -- Fermer le buffer courant (sans vérification)
-  vim.cmd('Ntree') -- Ouvrir netrw dans la fenêtre courante
-  print(" ")
-end, { desc = "Fermer le buffer et revenir sur l'explorateur de fichiers" })
-
-
--- Vide l'historique 
-vim.keymap.set('n', '<C-l>', function()
-  vim.fn.histdel('/', -1)
-  vim.fn.histdel('?', -1)
-  vim.fn.histdel(':', -1)
-  vim.cmd('nohlsearch')
-  print("Historique  vidé.")
-end, { noremap = true, silent = false })
-
