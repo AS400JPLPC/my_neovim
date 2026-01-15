@@ -1,3 +1,2 @@
-
-echo ".plugins/" >> .gitignore
+.plugins/
 
