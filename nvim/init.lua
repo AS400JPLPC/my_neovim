@@ -221,7 +221,7 @@ vim.keymap.set('n', 'N', 'N', { desc = "Rechercher l'occurrence précédente" })
 
 vim.keymap.set('n', '<M-ù>', ':set list!<CR>', { desc = "Basculer l'affichage des caractères spéciaux" })
 
-
+vim.keymap.set('n', '<C-q>', ':qa!<CR>', { desc = "quit full hard " })
 
 
 
