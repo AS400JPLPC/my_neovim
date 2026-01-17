@@ -192,6 +192,18 @@ ibl.setup({
 -- copy delete paste sont integre dans le system neovim 
 
 
+-- work  clipboard
+
+vim.keymap.set('n', '<C-c>', '"+y', { desc = "copy to cliboard" })
+vim.keymap.set('n', '<C-v>', '"+p', { desc = "copy from cliboard" })
+vim.keymap.set('n', '<C-d>', '"d', { desc = "delete text select" })
+
+vim.keymap.set('v', '<C-c>', '"+y', { desc = "copy to cliboard" })
+vim.keymap.set('v', '<C-v>', '"+p', { desc = "copy from cliboard" })
+vim.keymap.set('v', '<C-d>', 'd', { desc = "delete text select" })
+
+
+
 -- Raccourcis en mode NORMAL (équivalent à [keys.normal])
 vim.keymap.set('n', '<C-a>', ':vsplit /home/soleil/Zsnipset<CR>', { desc = "Ouvrir Zsnipset dans une split verticale" })
 vim.keymap.set('n', '<C-s>', ':write<CR>', { desc = "Sauvegarder" })
@@ -250,7 +262,7 @@ vim.keymap.set('n', '<C-e>', function()
 end, { desc = "Fermer le buffer et revenir sur l'explorateur de fichiers" })
 
 --______________________________________________________________
--- Vide l'historique et bloqué la recherche antérieur avec let @/
+-- Vide l'historique et bloqué la recherche antérieur avec let @/  C-l ear lol
 vim.keymap.set('n', '<C-l>', function()
   vim.cmd(':let @/ = "" | nohlsearch')
   vim.fn.histdel('?', -1)
