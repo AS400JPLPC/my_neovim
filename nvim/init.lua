@@ -205,12 +205,16 @@ vim.keymap.set('v', '<C-d>', 'd', { desc = "delete text select" })
 
 
 -- Raccourcis en mode NORMAL (équivalent à [keys.normal])
-vim.keymap.set('n', '<C-a>', ':vsplit /home/soleil/Zsnipset<CR>', { desc = "Ouvrir Zsnipset dans une split verticale" })
 vim.keymap.set('n', '<C-s>', ':write<CR>', { desc = "Sauvegarder" })
+vim.keymap.set('n', '<C-q>', ':qa!<CR>', { desc = "quit full hard not sauvegard" })
+
 vim.keymap.set('n', '<A-q>', '/', { desc = "Rechercher" })  -- `qery search`
 vim.keymap.set('n', '<A-m>', '%', { desc = "Aller à la parenthèse correspondante" })  -- `match_brackets`
+
+vim.keymap.set('n', '<A-a>', ':vsplit /home/soleil/Zsnipset<CR>', { desc = "Ouvrir Zsnipset dans une split verticale" })
 vim.keymap.set('n', '<A-w>', ':vnew<CR>', { desc = "new Split verticale" })  -- `vsplit_new`
 vim.keymap.set('n', '<A-v>', ':vsplit<CR>', { desc = "Split verticale" })  -- `vsplit`
+
 vim.keymap.set('n', '<A-g>', 'G', { desc = "Aller à la dernière ligne" })  -- `goto_last_line`
 vim.keymap.set('n', '<A-h>', vim.lsp.buf.hover, { desc = "Afficher l'aide (hover)" })  -- `hover`
 
@@ -221,18 +225,14 @@ vim.keymap.set('n', 'N', 'N', { desc = "Rechercher l'occurrence précédente" })
 
 vim.keymap.set('n', '<M-ù>', ':set list!<CR>', { desc = "Basculer l'affichage des caractères spéciaux" })
 
-vim.keymap.set('n', '<C-q>', ':qa!<CR>', { desc = "quit full hard " })
-
-
 
 
 -- Raccourcis en mode INSERT (équivalent à [keys.insert])
 vim.keymap.set('i', '<C-s>', '<Esc>:write<CR>a', { desc = "Sauvegarder et rester en mode insert" })
---vim.keymap.set('i', '<C-t>', '<Esc>:lua vim.cmd("normal! gcc")<CR>a', { desc = "Commenter la ligne" })
 vim.keymap.set('i', '<A-m>', '<Esc>%', { desc = "Aller à la parenthèse correspondante" })
 
 
-
+-- Raccourcis en mode NORMAL ( standard keyboard )
 vim.keymap.set('n', '<Del>', 'x', { desc = "Supprimer le caractère sous le curseur" })  -- `delete_char_forward`
 vim.keymap.set('n', '<Up>', 'k', { desc = "Monter d'une ligne" })                     -- `move_visual_line_up`
 vim.keymap.set('n', '<Down>', 'j', { desc = "Descendre d'une ligne" })               -- `move_visual_line_down`
@@ -290,7 +290,8 @@ vim.cmd([[
   highlight Function guifg=#51afef ctermfg=39
   highlight Type guifg=#d7d700 ctermfg=184
   highlight Identifier guifg=#d75fff ctermfg=170
-  highlight Error guifg=#ff0000 guibg=NONE ctermfg=196
+  highlight Boolean guifg=#af5fff ctermfg=135
+  highlight Error guifg=#ff0000 ctermfg=196
   highlight NonText guifg=#461613
   highlight CursorLine guibg=#1c1c1c ctermbg=234
 ]])
