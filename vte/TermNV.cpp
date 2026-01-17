@@ -283,7 +283,8 @@ int main (int   argc,   char *argv[])  {
     // Tableau des variables d'environnement (doit se terminer par NULL)
     char *envp[] = {
         new_path,  // Ajoute ton chemin au PATH
-        (gchar*)"TERM=xterm-256color"  // Exemple d'autre variable
+        (gchar*)"TERM=xterm-256color",  // Exemple d'autre variable
+    NULL
     };
     /// ----------------------------------------------------
 
