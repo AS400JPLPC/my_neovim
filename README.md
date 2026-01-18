@@ -2,7 +2,7 @@
 neovim for rust   
   
 
-end of January end of tests init.lua 
+Version 1 
 
   
 My configuration made with Mistral
@@ -37,7 +37,7 @@ I wanted to have very few dependencies in my configuration, which is why I downl
   
 # TermRust / [RUST_TERM]
 
-**Statut** : En cours de validation active (janvier 2026).
+**Statut** : validation Terminé (janvier 2026).
 **Auteur** : Jean-Pierre Laroche.
 **Collaboration** : Développement initial avec l’assistance technique de **Le Chat** (Mistral AI), pour la conversion Zig→Rust et l’optimisation des modules.
 
