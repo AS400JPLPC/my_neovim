@@ -14,6 +14,13 @@ comment_width = 120       -- Lignes de 120 caractères
 wrap_comments = false
 
 
+--______________________________________________________________
+-- Désactiver les touches de fonction    F1..F11
+for i =1, 11 do
+  vim.keymap.set({'n', 'i'}, '<F' .. i .. '>', '<Nop>')
+end
+
+
 
 --______________________________________________________________
 --. configuration de base du statusline 
@@ -162,11 +169,6 @@ vim.keymap.set('i', '<F12>', function()
 end, { desc = "Exécute la compile Rust virtuel (F12) " })
 
 
---______________________________________________________________
--- Désactiver les touches de fonction (comme dans Helix)  
-for i =1, 11 do
-  vim.keymap.set({'n', 'i'}, '<F' .. i .. '>', '<Nop>')
-end
 
 --______________________________________________________________
 -- les Plugins
