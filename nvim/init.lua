@@ -159,11 +159,10 @@ vim.keymap.set('i', '<A-c>', ':lclose<CR>', { desc = "Fermer la liste des erreur
 vim.keymap.set('i', '<F12>', function()
   vim.cmd('write!')  -- Sauvegarde temporaire (sans confirmation)
   vim.cmd('!cargo run')
-end, { desc = "Exécute le code Rust (F5)" })
+end, { desc = "Exécute la compile Rust virtuel (F12) " })
 
 
 --______________________________________________________________
-
 -- Désactiver les touches de fonction (comme dans Helix)  
 for i =1, 11 do
   vim.keymap.set({'n', 'i'}, '<F' .. i .. '>', '<Nop>')
@@ -206,14 +205,28 @@ vim.keymap.set('v', '<C-d>', 'd', { desc = "delete text select" })
 
 -- Raccourcis en mode NORMAL (équivalent à [keys.normal])
 vim.keymap.set('n', '<C-s>', ':write<CR>', { desc = "Sauvegarder" })
-vim.keymap.set('n', '<C-q>', ':qa!<CR>', { desc = "quit full hard not sauvegard" })
+vim.keymap.set('n', '<C-q>', ':qa!<CR>', { desc = "quit full hard no backup" })
 
 vim.keymap.set('n', '<A-q>', '/', { desc = "Rechercher" })  -- `qery search`
-vim.keymap.set('n', '<A-m>', '%', { desc = "Aller à la parenthèse correspondante" })  -- `match_brackets`
 
-vim.keymap.set('n', '<A-a>', ':vsplit /home/soleil/Zsnipset<CR>', { desc = "Ouvrir Zsnipset dans une split verticale" })
-vim.keymap.set('n', '<A-w>', ':vnew<CR>', { desc = "new Split verticale" })  -- `vsplit_new`
-vim.keymap.set('n', '<A-v>', ':vsplit<CR>', { desc = "Split verticale" })  -- `vsplit`
+
+
+
+vim.keymap.set('n', '<A-a>', function()
+  local path = "/home/soleil/Zsnipset"
+  if vim.fn.filereadable(path) == 1 then
+    vim.cmd(':vsplit ' .. path)
+  else
+    print("Chemin introuvable : " .. path)
+  end
+end, { desc = "Ouvrir Zsnipset verticale" })
+
+vim.keymap.set('n', '<A-w>', ':vnew<CR>:wincmd l<CR>', { desc = "new Split verticale" })  -- `vsplit_new`
+vim.keymap.set('n', '<A-v>',  ':vsplit<CR>:wincmd l<CR>', { desc = "Split verticale" })  -- `vsplit`
+vim.keymap.set('n', '<A-x>', ':q<CR>', { desc = "Fermer la fenêtre courante du split sans quitter Neovim" })
+
+
+
 
 vim.keymap.set('n', '<A-g>', 'G', { desc = "Aller à la dernière ligne" })  -- `goto_last_line`
 vim.keymap.set('n', '<A-h>', vim.lsp.buf.hover, { desc = "Afficher l'aide (hover)" })  -- `hover`
@@ -229,7 +242,7 @@ vim.keymap.set('n', '<M-ù>', ':set list!<CR>', { desc = "Basculer l'affichage d
 
 -- Raccourcis en mode INSERT (équivalent à [keys.insert])
 vim.keymap.set('i', '<C-s>', '<Esc>:write<CR>a', { desc = "Sauvegarder et rester en mode insert" })
-vim.keymap.set('i', '<A-m>', '<Esc>%', { desc = "Aller à la parenthèse correspondante" })
+vim.keymap.set({'n', 'i'}, '<A-m>', '<Esc>%', { desc = "Aller à la parenthèse correspondante" })  -- `match_brackets`
 
 
 -- Raccourcis en mode NORMAL ( standard keyboard )
@@ -247,28 +260,82 @@ vim.keymap.set('n', '<CR>', 'o', { desc = "Insérer une nouvelle ligne" })      
 
 --______________________________________________________________
 -- goto ligne       ex: Ligne:235
-vim.keymap.set('n', '<C-g>', function()
-  local line = vim.ui.input({ prompt = "Ligne: " })
-  if line then vim.cmd(':' .. line) end
+-- attention en mode 'v' la selection vas ce faire de l'emplacement du cursor jusqu'au n° deligne choisie
+-- por les mode 'n','i' goto ligne
+vim.keymap.set({'n', 'i','v'}, '<C-g>', function()
+  vim.ui.input({
+    prompt = "Ligne: ",
+  }, function(line)
+    if line and tonumber(line) then
+      vim.cmd(':' .. line)
+    else
+      print("Saisie invalide (attendu: un numéro de ligne)")
+    end
+  end)
 end, { desc = "Aller à la ligne" })
+
 
 --______________________________________________________________
 -- Fermer le buffer courant et revenir sur ntree à utiliser avec précaution
-vim.keymap.set('n', '<C-e>', function()
+vim.keymap.set({'n','v'}, '<C-e>', function()
   vim.cmd('only')  -- Ne garder qu'une seule fenêtre
   vim.cmd('bd')    -- Fermer le buffer courant (sans vérification)
   vim.cmd('Ntree') -- Ouvrir netrw dans la fenêtre courante
   print(" ")
 end, { desc = "Fermer le buffer et revenir sur l'explorateur de fichiers" })
 
---______________________________________________________________
--- Vide l'historique et bloqué la recherche antérieur avec let @/  C-l ear lol
-vim.keymap.set('n', '<C-l>', function()
-  vim.cmd(':let @/ = "" | nohlsearch')
-  vim.fn.histdel('?', -1)
-  vim.fn.histdel(':', -1)
-end, { desc = "Vider l'historique", silent = true })
 
+--______________________________________________________________
+-- Récupérer le dernier buffer fermé (en cas d'erreur)
+vim.keymap.set({'n', 'i', 'v'}, '<C-r>', function()
+  vim.cmd('e!')  -- Recharge le buffer actuel (annule les modifications non sauvegardées)
+  print("↩️ Buffer actuel rechargé (modifications non sauvegardées perdues)")
+end, { desc = "Recharger le buffer actuel", silent = false })
+
+
+
+--______________________________________________________________
+--[[
+  Purge TOTALE de l'environnement Neovim (inspiré de QTEMP sur AS400).
+  - Supprime :
+    - Buffers (y compris # et erreurs).
+    - Historique de navigation (Ctrl-O/Ctrl-I).
+    - Presse-papiers et registres.
+  - Utilisation : <C-l> pour tout nettoyer SAUF le buffer actuel.
+]]
+
+
+-- Purge TOTALE : buffers SAUF le buffer actuel, historique, presse-papiers, ET le buffer #
+-- Version avec vérification explicite du buffer #
+vim.keymap.set({'n', 'i', 'v'}, '<C-l>', function()
+  local current_buf = vim.api.nvim_get_current_buf()
+
+  -- 1  Ferme tous les buffers sauf l'actuel
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_valid(buf) and buf ~= current_buf then
+      pcall(vim.cmd, 'bd! ' .. buf)
+    end
+  end
+
+  -- 2  Supprime le buffer # uniquement s'il existe
+  local alternate_buf = vim.fn.bufnr('#')
+  if alternate_buf ~= -1 then  -- bufnr('#') retourne -1 si le buffer n'existe pas
+    pcall(vim.cmd, 'bwipeout! #')
+  end
+
+  -- 3. Réinitialise l'historique de navigation
+  vim.cmd('clearjumps')
+
+  -- 4. Nettoyage classique (recherche, presse-papiers, etc.)
+  vim.cmd('let @/ = "" | nohlsearch')
+  vim.fn.histdel(':', -1)
+  vim.fn.histdel('?', -1)
+  os.execute('xclip -selection clipboard /dev/null 2>/dev/null')
+  vim.fn.setreg('"', '')
+  vim.fn.setreg('+', '')
+
+  print("🧹 Tout purgé SAUF le buffer actuel (et # supprimé si possible)")
+end, { desc = "Purge TOTALE (sauf buffer actuel)", silent = false })
 
 
 --______________________________________________________________
@@ -286,6 +353,7 @@ vim.opt.background = "dark"  -- Fond sombre
 vim.cmd([[
   highlight Comment guifg=#af875f ctermfg=137
   highlight String guifg=#00af00 ctermfg=34
+  highlight Number guifg=#ffaf00 ctermfg=214
   highlight Keyword guifg=#ff8700 ctermfg=208
   highlight Function guifg=#51afef ctermfg=39
   highlight Type guifg=#d7d700 ctermfg=184
