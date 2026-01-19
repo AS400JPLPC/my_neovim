@@ -13,7 +13,10 @@ max_width = 120       -- Lignes de 120 caractères
 comment_width = 120       -- Lignes de 120 caractères 
 wrap_comments = false
 
-
+-- Optimise la réactivité de <Esc> (utile avec VTE)
+vim.opt.ttimeoutlen = 10  -- Délai en millisecondes (10ms = réactivité maximale)
+vim.opt.timeout = true    -- Active le délai
+vim.opt.timeoutlen = 500  -- Délai pour les séquences de touches (ex: <Esc>+O)
 --______________________________________________________________
 -- Désactiver les touches de fonction    F1..F11
 for i =1, 11 do
@@ -81,7 +84,12 @@ lspconfig.rust_analyzer.setup({
       },
       check = {
         command = 'clippy',
-        extraArgs = { '--no-deps' },
+        extraArgs = {
+          "--no-deps",
+          "--",
+          "-W", "clippy::pedantic",  -- Plus strict (comme tes validations Zig)
+          "-A", "clippy::needless_return",  -- Moins de bruit
+        },
       },
       checkOnSave = {
         enable = true,
@@ -103,21 +111,31 @@ lspconfig.rust_analyzer.setup({
         level = "error",  -- Affiche seulement les erreurs (pas les warnings)
       },
       cachePriming = { enable = false },
+      completion = {
+        postfix = { enable = false },  -- Pas de snippets intrusifs
+        autoimport = { enable = false },  -- Désactivé (tu n'utilises pas d'auto-imports)
+      },
     },
   },
-  on_attach = function(client, bufnr)
-    client.server_capabilities.documentFormattingProvider = false
-    vim.api.nvim_create_autocmd('CursorHold', {
-      buffer = bufnr,
-      callback = function()
-        vim.diagnostic.open_float(nil, { focusable = false })
-      end
-    })
-  end,
+ 
+
+      on_attach = function(client, bufnr)
+        -- Désactive le formatage automatique (tu préfères le contrôle manuel, Memory #1)
+        client.server_capabilities.documentFormattingProvider = false
+
+        -- Active la complétion LSP native (comme discuté précédemment)
+        vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+        vim.keymap.set('i', '<C-Space>', '<C-x><C-o>', { buffer = bufnr })
+
+        -- **Nouveau : Affichage des diagnostics au survol**
+        vim.api.nvim_create_autocmd('CursorHold', {
+          buffer = bufnr,
+          callback = function()
+            vim.diagnostic.open_float(nil, { focusable = false })
+          end
+        })
+      end,
 })
-
-
-
 
 -- Désactive les logs LSP (pour éviter la pollution)
 vim.lsp.set_log_level("warn")  -- N'affiche que les warnings et erreurs (pas les infos)
@@ -246,8 +264,9 @@ vim.keymap.set('n', '<M-ù>', ':set list!<CR>', { desc = "Basculer l'affichage d
 vim.keymap.set('i', '<C-s>', '<Esc>:write<CR>a', { desc = "Sauvegarder et rester en mode insert" })
 vim.keymap.set({'n', 'i'}, '<A-m>', '<Esc>%', { desc = "Aller à la parenthèse correspondante" })  -- `match_brackets`
 
-
 -- Raccourcis en mode NORMAL ( standard keyboard )
+
+vim.keymap.set({'i', 'v', 's', 'x'}, '<Esc>', '<Esc>', { silent = true, noremap = true }) -- Réinitialise <Esc> pour un retour immédiat en mode normal
 vim.keymap.set('n', '<Del>', 'x', { desc = "Supprimer le caractère sous le curseur" })  -- `delete_char_forward`
 vim.keymap.set('n', '<Up>', 'k', { desc = "Monter d'une ligne" })                     -- `move_visual_line_up`
 vim.keymap.set('n', '<Down>', 'j', { desc = "Descendre d'une ligne" })               -- `move_visual_line_down`
@@ -257,7 +276,8 @@ vim.keymap.set('n', '<PageUp>', '<C-b>', { desc = "Page précédente" })        
 vim.keymap.set('n', '<PageDown>', '<C-f>', { desc = "Page suivante" })               -- `page_down`
 vim.keymap.set('n', '<Home>', '^', { desc = "Aller au début de la ligne" })          -- `goto_line_start`
 vim.keymap.set('n', '<End>', 'g_', { desc = "Aller à la fin de la ligne" })          -- `goto_line_end_newline`
-vim.keymap.set('n', '<CR>', 'o', { desc = "Insérer une nouvelle ligne" })            -- `insert_newline` (en mode normal, `<CR>` = `o` pour une nouvelle ligne)
+vim.keymap.set('n', '<CR>', 'o', { desc = "Insérer une nouvelle ligne" })            -- `insert_newline  Enter`
+
 
 
 --______________________________________________________________
