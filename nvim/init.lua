@@ -3,6 +3,14 @@
 --.~/ with Mistral AI, which taught me a great deal
 
 
+-- 1. Force l'encodage UTF-8 pour les fichiers et le terminal
+vim.opt.encoding = 'utf-8'       -- Encodage interne de Neovim
+vim.opt.fileencoding = 'utf-8'   -- Encodage des fichiers ouverts/sauvegardés
+vim.opt.fileencodings = {'utf-8'} -- Liste des encodages à essayer (UTF-8 en priorité)
+
+-- 3. Pour les fichiers existants (évite les conversions automatiques)
+--vim.opt.bomb = false             -- Désactive la détection de BOM (Byte Order Mark)
+
 vim.opt.number = true          -- Numéros de ligne
 vim.opt.tabstop = 4            -- Tabulations à 4 espaces
 vim.opt.shiftwidth = 4
@@ -17,6 +25,15 @@ wrap_comments = false
 vim.opt.ttimeoutlen = 10  -- Délai en millisecondes (10ms = réactivité maximale)
 vim.opt.timeout = true    -- Active le délai
 vim.opt.timeoutlen = 500  -- Délai pour les séquences de touches (ex: <Esc>+O)
+
+
+-- Surligner la ligne du curseur
+vim.opt.cursorline = true
+-- Curseur clignotant
+vim.opt.guicursor = "a:blinkon100"
+
+
+
 --______________________________________________________________
 -- Désactiver les touches de fonction    F1..F11
 for i =1, 11 do
@@ -30,20 +47,18 @@ end
 
 Statusline = {}
 
--- études et dtricotage
---function Statusline.active()
-    -- %f file %l ligne  %c colonne %M  modifier
---    return "[%f]                                                                       position:[%l:%c] modifier:[%M]"
---	end
 
 -- Définis la barre de statut 
 function Statusline.active()
+
+
     local filename = vim.fn.expand("%:t")  -- Nom du fichier (ex: "main.rs")
     local position = string.format("[%d:%d]", vim.fn.line("."), vim.fn.col("."))  -- Ex: "[42:10]"
     local modified = vim.bo.modified and "[+]" or ""  -- "[+]" si modifié, sinon ""
+    local smode = string.format("%s",vim.fn.mode())
     -- Calcul du padding pour atteindre max_width (120) :
-    local padding = string.rep(" ", max_width - #filename - #position - #modified - 20)
-    return string.format("[%s]%s    position:%s modifier:%s", filename, padding, position, modified)
+    local padding = string.rep(" ", max_width - #filename - #position - #smode - #modified -30)
+    return string.format("[%s]%s position:%s    :mode:%s    modifier:%s", filename, padding, position, smode, modified)
 end
 
 
@@ -137,6 +152,8 @@ lspconfig.rust_analyzer.setup({
       end,
 })
 
+
+
 -- Désactive les logs LSP (pour éviter la pollution)
 vim.lsp.set_log_level("warn")  -- N'affiche que les warnings et erreurs (pas les infos)
 
@@ -171,20 +188,25 @@ vim.api.nvim_create_autocmd("BufWritePost", {
 })
 
 -- Naviguer entre les erreurs
-vim.keymap.set('n', '<A-n>', ':lnext<CR>', { desc = "Erreur suivante" })
-vim.keymap.set('n', '<A-p>', ':lprev<CR>', { desc = "Erreur précédente" })
-vim.keymap.set('n', '<A-c>', ':lclose<CR>', { desc = "Fermer la liste des erreurs" })
-
-vim.keymap.set('i', '<A-n>', ':lnext<CR>', { desc = "Erreur suivante" })
-vim.keymap.set('i', '<A-p>', ':lprev<CR>', { desc = "Erreur précédente" })
-vim.keymap.set('i', '<A-c>', ':lclose<CR>', { desc = "Fermer la liste des erreurs" })
+vim.keymap.set({ 'i','n'}, '<A-n>', ':lnext<CR>', { desc = "Erreur suivante" })
+vim.keymap.set({ 'i','n'}, '<A-p>', ':lprev<CR>', { desc = "Erreur précédente" })
+vim.keymap.set({ 'i','n'}, '<A-c>', ':lclose<CR>', { desc = "Fermer la liste des erreurs" })
 
 
--- Compile et exécute le code Rust actuel (sans sauvegarde préalable)
-vim.keymap.set('i', '<F12>', function()
-  vim.cmd('write!')  -- Sauvegarde temporaire (sans confirmation)
-  vim.cmd('!cargo run')
-end, { desc = "Exécute la compile Rust virtuel (F12) " })
+-- query erreurs
+vim.keymap.set({ 'i','n'}, '<F12>', function()
+
+  vim.cmd('write!')  --sauvegarde forcé
+
+  vim.diagnostic.reset()  -- Nettoie les erreurs précédentes
+
+  -- Exécute cargo check (plus rapide que build) 
+  vim.fn.system('cargo check')
+  vim.diagnostic.setloclist() -- force à afficher la liste de message
+
+  if vim.fn.mode() == 'i' then vim.cmd('stopinsert') end
+end, { desc = "[Rust] Check + Sauvegarde (F12)" })
+
 
 
 
@@ -199,7 +221,7 @@ vim.keymap.set('v', '<C-t>', ':CommentToggle<CR>', { desc = "Commenter le bloc" 
 
 local ibl = require("ibl")
 vim.cmd([[
-  highlight IblIndentChar guifg=#1c1c1c ctermfg=234
+  highlight IblIndentChar guifg=#262626 ctermbg=235
 ]])
 ibl.setup({
     indent = { char = "│", highlight = {"IblIndentChar"} },
@@ -208,26 +230,25 @@ ibl.setup({
 
 --______________________________________________________________
 --les commandes 
--- copy delete paste sont integre dans le system neovim 
-
-
 -- work  clipboard
 
-vim.keymap.set('n', '<C-c>', '"+y', { desc = "copy to cliboard" })
-vim.keymap.set('n', '<C-v>', '"+p', { desc = "copy from cliboard" })
-vim.keymap.set('n', '<C-d>', '"d', { desc = "delete text select" })
-
-vim.keymap.set('v', '<C-c>', '"+y', { desc = "copy to cliboard" })
-vim.keymap.set('v', '<C-v>', '"+p', { desc = "copy from cliboard" })
-vim.keymap.set('v', '<C-d>', 'd', { desc = "delete text select" })
+vim.keymap.set({'n', 'v'}, '<C-c>', '"+y', { desc = "copy to cliboard" })
+vim.keymap.set({'n', 'v'}, '<C-v>', '"+p', { desc = "copy from cliboard" })
+vim.keymap.set({'n', 'v'}, '<C-d>', '"d', { desc = "delete text select" })
 
 
+-- sauvegarde  
+vim.keymap.set({'i','n'}, '<C-s>', function() 
+vim.cmd(':write!')
+if vim.fn.mode() == 'i' then vim.cmd('stopinsert') end
+end, { desc = "Sauvegarder" })
 
--- Raccourcis en mode NORMAL (équivalent à [keys.normal])
-vim.keymap.set('n', '<C-s>', ':write<CR>', { desc = "Sauvegarder" })
+
+
+-- Raccourcis en mode NORMAL 
 vim.keymap.set('n', '<C-q>', ':qa!<CR>', { desc = "quit full hard no backup" })
 
-vim.keymap.set('n', '<A-q>', '/', { desc = "Rechercher" })  -- `qery search`
+vim.keymap.set('n', '<A-q>', '/', { desc = "Rechercher" })  -- `query search`
 
 
 
@@ -241,8 +262,9 @@ vim.keymap.set('n', '<A-a>', function()
   end
 end, { desc = "Ouvrir Zsnipset verticale" })
 
+
 vim.keymap.set('n', '<A-w>', ':vnew<CR>:wincmd l<CR>', { desc = "new Split verticale" })  -- `vsplit_new`
-vim.keymap.set('n', '<A-v>',  ':vsplit<CR>:wincmd l<CR>', { desc = "Split verticale" })  -- `vsplit`
+vim.keymap.set('n', '<A-v>', ':vsplit<CR>:wincmd l<CR>', { desc = "Split verticale" })  -- `vsplit`
 vim.keymap.set('n', '<A-x>', ':q<CR>', { desc = "Fermer la fenêtre courante du split sans quitter Neovim" })
 
 
@@ -260,8 +282,6 @@ vim.keymap.set('n', '<M-ù>', ':set list!<CR>', { desc = "Basculer l'affichage d
 
 
 
--- Raccourcis en mode INSERT (équivalent à [keys.insert])
-vim.keymap.set('i', '<C-s>', '<Esc>:write<CR>a', { desc = "Sauvegarder et rester en mode insert" })
 vim.keymap.set({'n', 'i'}, '<A-m>', '<Esc>%', { desc = "Aller à la parenthèse correspondante" })  -- `match_brackets`
 
 -- Raccourcis en mode NORMAL ( standard keyboard )
@@ -277,6 +297,25 @@ vim.keymap.set('n', '<PageDown>', '<C-f>', { desc = "Page suivante" })          
 vim.keymap.set('n', '<Home>', '^', { desc = "Aller au début de la ligne" })          -- `goto_line_start`
 vim.keymap.set('n', '<End>', 'g_', { desc = "Aller à la fin de la ligne" })          -- `goto_line_end_newline`
 vim.keymap.set('n', '<CR>', 'o', { desc = "Insérer une nouvelle ligne" })            -- `insert_newline  Enter`
+-- deux fonction enter
+--______________________________________________________________
+-- Insère une ligne en dessous, l'indente, ajoute une tabulation et reste en mode normal Enter
+vim.keymap.set('n', '<C-m>', function()
+  -- 1. Insère une ligne en dessous et quitte le mode insertion
+  vim.cmd('normal! o\027')
+
+  -- 2. Indente la ligne (selon le langage)
+  vim.cmd('normal! ==')
+
+  -- 3. Ajoute une tabulation au début de la ligne
+  vim.cmd('normal! i\t\027')
+
+  -- 4. Place le curseur après la tabulation
+  vim.cmd('normal! j$')
+end, { desc = "Nouvelle ligne indentée + tabulation", silent = true })
+
+
+
 
 
 
@@ -309,7 +348,7 @@ end, { desc = "Fermer le buffer et revenir sur l'explorateur de fichiers" })
 
 --______________________________________________________________
 -- Récupérer le dernier buffer fermé (en cas d'erreur)
-vim.keymap.set({'n', 'i', 'v'}, '<C-r>', function()
+vim.keymap.set({'n', 'i', 'v'}, '<C-R>', function()
   vim.cmd('e!')  -- Recharge le buffer actuel (annule les modifications non sauvegardées)
   print("↩️ Buffer actuel rechargé (modifications non sauvegardées perdues)")
 end, { desc = "Recharger le buffer actuel", silent = false })
@@ -362,29 +401,36 @@ end, { desc = "Purge TOTALE (sauf buffer actuel)", silent = false })
 
 --______________________________________________________________
 
--- Configuration des couleurs (thème minimaliste)
-vim.opt.background = "dark"  -- Fond sombre
---highlight Comment guifg=#af875f ctermfg=137    -- Commentaires brun
---highlight String guifg=#00af00 ctermfg=34      -- Chaînes en vert
---highlight Keyword guifg=#ff8700 ctermfg=208    -- Mots-clés Rust en orange
---highlight Function guifg=#51afef ctermfg=39    -- Fonctions en bleu
---highlight Type guifg=#d7d700 ctermfg=184       -- Types en jaune
---highlight Identifier guifg=#d75fff ctermfg=170 -- identifier Orchid
---highlight Error guifg=#ff0000 guibg=NONE ctermfg=196
+
 
 vim.cmd([[
-  highlight Comment guifg=#af875f ctermfg=137
-  highlight String guifg=#00af00 ctermfg=34
-  highlight Number guifg=#ffaf00 ctermfg=214
-  highlight Keyword guifg=#ff8700 ctermfg=208
-  highlight Function guifg=#51afef ctermfg=39
-  highlight Type guifg=#d7d700 ctermfg=184
-  highlight Identifier guifg=#d75fff ctermfg=170
-  highlight Boolean guifg=#af5fff ctermfg=135
-  highlight Error guifg=#ff0000 ctermfg=196
-  highlight NonText guifg=#461613
-  highlight CursorLine guibg=#1c1c1c ctermbg=234
+  highlight Comment guifg=#af875f ctermfg=137 gui=none
+  highlight String guifg=#00af00 ctermfg=34 gui=none
+  highlight Number guifg=#ffaf00 ctermfg=214 gui=none
+  highlight Keyword guifg=#ff8700 ctermfg=208 gui=none
+  highlight Function guifg=#51afef ctermfg=39 gui=none
+  highlight Type guifg=#d7d700 ctermfg=184 gui=none
+  highlight Identifier guifg=#d75fff ctermfg=170 gui=none
+  highlight Boolean guifg=#af5fff ctermfg=135 gui=none
+  highlight Error guifg=#ff0000 ctermfg=196 gui=none
+  highlight NonText guifg=#461613 gui=none
+
+  highlight CursorLine guibg=#262626 ctermbg=235
+  highlight CursorColumn guibg=#262626 ctermbg=235
+  set cursorcolumn
+
+  highlight Cursor guifg=NONE ctermfg=NONE guibg=NONE ctermbg=NONE gui=reverse cterm=reverse
+
+  set guicursor=n-v-c:block-blinkon300-blinkoff300
+  set guicursor+=i-ci-ve:ver25
+  set guicursor+=r-cr:hor20,o:hor20
+
+
+  highlight statusline guibg=#000000 guifg=#ff0000 gui=none
+
 ]])
+
+--set colorcolumn=120
 
 -- Afficher les caractères spéciaux (tabulations, espaces, sauts de ligne)
 vim.opt.list = true
@@ -392,5 +438,4 @@ vim.opt.listchars = {
   eol = '¶',       -- Saut de ligne
 }
 
--- Surligner la ligne du curseur
-vim.opt.cursorline = true
+

@@ -2,10 +2,15 @@
 neovim for rust   
   
 
-Version 1 
+Version 1.02   
+  
+Setting: compile on the fly F12
+UTF-8 character consistency
+color statusline
+a few gems that gave me a few gray hairs
 
   
-My configuration made with Mistral
+**My configuration made with Mistral IA**
 
 a minimal configuration with 2 plugins optimized for Rust
 with a VTE terminal 
