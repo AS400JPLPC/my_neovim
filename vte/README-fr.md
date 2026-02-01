@@ -64,7 +64,8 @@ Limitations
 
 Plateforme : Linux uniquement (dépend de GTK/VTE).
 Exécutables : Seuls les programmes sans extension et exécutables sont supportés.
-Terminal : Pas de support pour les onglets ou fenêtres multiples.
+Terminal : Pas de support pour les onglets ou fenêtres multiples, mais autant de fenêtre que vous voulez...  
+
 
 
 Dépendances
@@ -72,7 +73,8 @@ Dépendances
 GTK4≥ 4.6 Interface graphique.
 libvte-2.91≥ 0.68 Émulation de terminal.
 libadwaita-1≥ 1.2 Boîtes de dialogue modernes.
-Helix (hx) Nightly Éditeur de code par défaut.
+Helix (hx) Nightly Éditeur de code par défaut. pour ZIG  
+neovim  mon Éditeur de code par défaut. pour Rust
 
 
 

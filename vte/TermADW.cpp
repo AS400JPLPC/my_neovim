@@ -5,7 +5,7 @@
 
 
 
-#include <vte/vte.h>
+#include <vte-2.91-gtk4/vte/vte.h>
 #include <adwaita.h>
 #include <glib/gprintf.h>
 #include <gtk-4.0/gdk/gdk.h>
@@ -17,11 +17,11 @@ AdwAlertDialog *Alertdialog;
 
 GPid child_pid = 0;
 
-const bool ALT_F4 = true;  // true very special ???
+const bool ALT_F4 = false;  // true very special ???
 
 
 #define WORKPGM		"nvim"
-#define WORKENV		"/usr/bin/"
+#define WORKENV		"/usr/bin"
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -184,7 +184,7 @@ void	init_Terminal()
 
 	VteTerminal *VTE;
 
-    #define VTEFONT	"Fira Code Light"
+    #define VTEFONT	"Fira Code Regular"
 
 
 	gchar * font_terminal = (char*) malloc (50);
@@ -192,15 +192,15 @@ void	init_Terminal()
 	/// confortable and extend numbers columns and rows
 	// HELIX
 
-    unsigned int COL=	126; // 120 cols  src
-    unsigned int ROW =	42;  // 40  lines src 
+    unsigned int COL=	127; // 120 cols  src  5 colonnes reservées
+    unsigned int ROW =	46;  // 42  lines src  3 lines réservées pour neovim
 
 
     //determines the maximum size for screens
     Display* d = XOpenDisplay(NULL);
     gint  s = DefaultScreen(d);
     // obsolète
-    gint width  = DisplayWidth(d, s);;
+    gint width  = DisplayWidth(d, s);
     gint height = DisplayHeight(d, s);
 
     // specifique xfce4  my screen 3840    = 1920 : 1080
@@ -212,7 +212,7 @@ void	init_Terminal()
         g_sprintf(font_terminal,"%s  %s" , VTEFONT,"10");
         }
     else if ( width <= 1920 && height <=1080 ) {                // ex: 17"... 32" font 12
-        g_sprintf(font_terminal,"%s  %s" , VTEFONT,"14");       // xfce4 arandr 3  big screen 14
+        g_sprintf(font_terminal,"%s  %s" , VTEFONT,"13");       // xfce4 arandr 3  big screen 14
         }
     else if ( width > 1920 && width < 2560  ) {                  //  ex: 2560 x1600 > 27"  font 13
         g_sprintf(font_terminal,"%s  %s" , VTEFONT,"13");
@@ -284,7 +284,7 @@ int main (int   argc,   char *argv[])  {
     char *envp[] = {
         new_path,  // Ajoute ton chemin au PATH
         (gchar*)"TERM=xterm-256color",  // Exemple d'autre variable
-    NULL
+		NULL,
     };
     /// ----------------------------------------------------
 

@@ -2,14 +2,36 @@
 neovim for rust   
   
 
-Version 1.02   
+Version stable     
+Because I can't spend all my time configuring an editor... 1 month Because I can't spend all my time configuring an editor... It took me a month to find the right balance and turn it into a real tool.
+**THANK YOU to the OPEN-SOURCE community**, 
   
-Setting: compile on the fly F12
-UTF-8 character consistency
-color statusline
-a few gems that gave me a few gray hairs
+"F12" active source compilation option, to check consistency, involves automatic saving.  
+  
+UTF-8 character consistency  
+  
+color  
+  
+statusline  
+a few gems that gave me a few gray hairs  
+  
+the name of your source is displayed in the window title     
+  
+"C-l"Purge all buffers except the current “active source” buffer.  
+  
+"C-e" accesses Neovim's internal explorer directly and closes buffers without saving  
+  
+I'm leaving you a source  to wrap your Neovim, you can adapt it for terminal applications.(VTE4)  
+   
+The “LSP” for Rust was configured by Mistral and tested by me, striking a balance between straightness and viability while respecting the route mapped out by Rust.  
+  
+  
+**I deliberately made sure that there were as few plugins as possible (2) and only those necessary for everyday use, and I highlighted the most frequently used functions for programming.
+“Keep it as simple as possible.”**
+  
+  
+  
 
-  
 **My configuration made with Mistral IA**
 
 a minimal configuration with 2 plugins optimized for Rust

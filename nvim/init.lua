@@ -4,21 +4,40 @@
 
 
 -- 1. Force l'encodage UTF-8 pour les fichiers et le terminal
-vim.opt.encoding = 'utf-8'       -- Encodage interne de Neovim
-vim.opt.fileencoding = 'utf-8'   -- Encodage des fichiers ouverts/sauvegardés
-vim.opt.fileencodings = {'utf-8'} -- Liste des encodages à essayer (UTF-8 en priorité)
+vim.opt.encoding = 'utf-8'        -- Encodage interne de Neovim
+vim.opt.fileencoding = 'utf-8'    -- Encodage des fichiers ouverts/sauvegardés
 
--- 3. Pour les fichiers existants (évite les conversions automatiques)
---vim.opt.bomb = false             -- Désactive la détection de BOM (Byte Order Mark)
+-- Configuration de base pour Neovim (120x45)
+vim.opt.number = true          -- Affiche les numéros de ligne (sauf dans le terminal)
+vim.opt.tabstop = 4            -- 4 espaces pour les tabulations (Rust/Zig)
+vim.opt.shiftwidth = 4         -- Idem pour l'indentation
+vim.opt.colorcolumn = "120"    -- Ligne verticale à 120 caractères (votre standard)
+vim.opt.expandtab = true       -- Remplace les tabulations par des espaces (pour cohérence)
+vim.opt.termguicolors = true   -- Pour les couleurs VTE 
 
-vim.opt.number = true          -- Numéros de ligne
-vim.opt.tabstop = 4            -- Tabulations à 4 espaces
-vim.opt.shiftwidth = 4
-vim.opt.expandtab = true -- Remplace les tabulations par des espaces (pour cohérence)
-vim.opt.termguicolors = true    -- Pour les couleurs VTE 
+vim.opt.colorcolumn = "120"  -- Ligne verticale à 120 caractères (votre standard)
 
-max_width = 120       -- Lignes de 120 caractères 
-comment_width = 120       -- Lignes de 120 caractères 
+-- Police (Source Code Pro, comme dans vos mémos)
+vim.opt.guifont = "Fira Code Regular:h13"  -- Ajustez la taille (h12, h13, etc.) selon vos besoins
+
+
+-- recherche
+vim.opt.ignorecase = true -- ignore la casse quand on recherche
+vim.opt.smartcase = true -- sauf quand on fait une recherche avec des majuscules, on rebascule en 
+vim.opt.signcolumn = "yes"
+
+-- presse papier
+vim.opt.clipboard = "unnamedplus" -- on utilise le presse papier du système par défaut
+
+vim.opt.swapfile = false -- on supprime le pénible fichier de sw
+
+vim.opt.undofile = true -- on autorise l'undo à l'infini (même quand on revient sur un fichier qu'on avait fermé)
+
+vim.opt.iskeyword:append("-") -- on traite les mots avec des - comme un seul mot
+
+
+max_width = 120               -- Lignes de 120 caractères 
+comment_width = 120           -- Lignes de 120 caractères 
 wrap_comments = false
 
 -- Optimise la réactivité de <Esc> (utile avec VTE)
@@ -26,24 +45,22 @@ vim.opt.ttimeoutlen = 10  -- Délai en millisecondes (10ms = réactivité maxima
 vim.opt.timeout = true    -- Active le délai
 vim.opt.timeoutlen = 500  -- Délai pour les séquences de touches (ex: <Esc>+O)
 
-
 -- Surligner la ligne du curseur
 vim.opt.cursorline = true
 -- Curseur clignotant
 vim.opt.guicursor = "a:blinkon100"
 
 
-
 --______________________________________________________________
 -- Désactiver les touches de fonction    F1..F11
-for i =1, 11 do
-  vim.keymap.set({'n', 'i'}, '<F' .. i .. '>', '<Nop>')
+
+for i = 1, 11 do
+   vim.keymap.set({'n', 'i'}, '<F' .. i .. '>', '<Nop>')
 end
 
 
 
 --______________________________________________________________
---. configuration de base du statusline 
 
 Statusline = {}
 
@@ -51,13 +68,14 @@ Statusline = {}
 -- Définis la barre de statut 
 function Statusline.active()
 
-
     local filename = vim.fn.expand("%:t")  -- Nom du fichier (ex: "main.rs")
     local position = string.format("[%d:%d]", vim.fn.line("."), vim.fn.col("."))  -- Ex: "[42:10]"
     local modified = vim.bo.modified and "[+]" or ""  -- "[+]" si modifié, sinon ""
     local smode = string.format("%s",vim.fn.mode())
     -- Calcul du padding pour atteindre max_width (120) :
     local padding = string.rep(" ", max_width - #filename - #position - #smode - #modified -30)
+
+
     return string.format("[%s]%s position:%s    :mode:%s    modifier:%s", filename, padding, position, smode, modified)
 end
 
@@ -85,53 +103,87 @@ vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
 })
 
 
+-- Titre automatique pour les fichiers
+vim.api.nvim_create_autocmd({ "BufEnter" }, {
+    group = vim.api.nvim_create_augroup("AutoTitle", { clear = true }),
+    callback = function()
+        local filename = vim.fn.expand("%:t")
+        if filename and filename ~= "" then
+            vim.fn.chansend(vim.v.stderr, string.format("\27]0;%s\007", filename))
+        end
+    end,
+})
+
+
+
 --______________________________________________________________
 
 -- Configuration optimisée pour rust-analyzer (avec lspconfig)
+-- Configuration de rust-analyzer pour TERMRUST (version validée)
 local lspconfig = require('lspconfig')
 lspconfig.rust_analyzer.setup({
-  cmd = { os.getenv('HOME') .. '/.cargo/bin/rust-analyzer' },
+  cmd = { os.getenv('HOME') .. '/.cargo/bin/rust-analyzer' },  -- Chemin explicite
+
   settings = {
     ['rust-analyzer'] = {
+      -- Gestion des dépendances et builds
       cargo = {
-        features = 'all',
-        buildScripts = { enable = true },
+        features = "all",  -- Active toutes les features (comme dans vos validations Zig)
+        buildScripts = { enable = true },  -- Analyse les scripts de build
       },
+
+      -- Vérifications avec Clippy (rigueur comme en Zig)
       check = {
-        command = 'clippy',
+        command = "clippy",
         extraArgs = {
-          "--no-deps",
+          "--no-deps",  -- Ignore les dépendances
           "--",
-          "-W", "clippy::pedantic",  -- Plus strict (comme tes validations Zig)
-          "-A", "clippy::needless_return",  -- Moins de bruit
+          "-W", "clippy::pedantic",  -- Mode strict
+          "-A", "clippy::needless_return",  -- Désactive les warnings inutiles
         },
       },
+
+      -- Vérification à la sauvegarde
       checkOnSave = {
         enable = true,
-        command = 'clippy',
-        extraArgs = { '--no-deps' },
+        command = "clippy",
+        extraArgs = { "--no-deps" },
       },
+
+      -- Formatage (120 colonnes, comme vos standards)
       rustfmt = {
         extraArgs = {
-          "--comment-width=120",
-          "--wrap-comments=false",
+          "--config",
+          "max_width=120",  -- Largeur fixe
+          "comment_width=120",  -- Commentaires alignés
+          "wrap_comments=false",  -- Pas de retour à la ligne forcé
         },
+        enableRangeFormatting = true,  -- Permet le formatage de sélection (<C-f>)
       },
+
+      -- Gestion des macros (pour vos macros externes dans TERMRUST)
       procMacro = { enable = true },
+
+      -- Exclusions (propreté du projet)
       files = {
-        excludeDirs = { "target/", ".git/" },
+        excludeDirs = { "target/", ".git/" },  -- Ignore les dossiers système
       },
-      -- Réduit la verbosité des logs
-      logs = {
-        level = "error",  -- Affiche seulement les erreurs (pas les warnings)
-      },
-      cachePriming = { enable = false },
+
+      -- Réduction du bruit (comme vos préférences)
+      logs = { level = "warn" },  -- Seules les erreurs sont affichées
+
+      -- Désactive les fonctionnalités intrusives
       completion = {
-        postfix = { enable = false },  -- Pas de snippets intrusifs
-        autoimport = { enable = false },  -- Désactivé (tu n'utilises pas d'auto-imports)
+        postfix = { enable = false },  -- Pas de snippets automatiques
+        autoimport = { enable = false },  -- Pas d'auto-imports
       },
+
+      -- Désactive le cache (pour éviter les latences)
+      cachePriming = { enable = false },
     },
   },
+
+
  
 
       on_attach = function(client, bufnr)
@@ -151,13 +203,60 @@ lspconfig.rust_analyzer.setup({
         })
       end,
 })
-
-
-
 -- Désactive les logs LSP (pour éviter la pollution)
-vim.lsp.set_log_level("warn")  -- N'affiche que les warnings et erreurs (pas les infos)
+-- vim.lsp.set_log_level("warn")  -- N'affiche que les warnings et erreurs (pas les infos)
 
 
+
+-- Formater la sélection Rust avec <C-F> (minimaliste)
+-- se repositionne approximativement à l'origine de la commande
+-- Nettoyage rapide : Utile pour formater des blocs non critiques (ex: corps de fonctions simples module *.rs)
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'rust',
+  callback = function()
+    vim.keymap.set('v', '<C-F>', function()
+    local line = vim.fn.line("v")
+    -- Sauvegarde la sélection dans un registre temporaire
+    vim.cmd('noautocmd w !rustfmt --config max_width=120,comment_width=120,wrap_comments=false > /tmp/rustfmt_temp.rs')
+    -- Remplace la sélection par le résultat formaté
+    vim.cmd(':%!cat /tmp/rustfmt_temp.rs')
+    -- Nettoie le fichier temporaire
+    vim.fn.delete('/tmp/rustfmt_temp.rs')
+    -- repositon normal
+    vim.cmd([[ execute "normal! \<ESC>" ]])
+    vim.cmd(':' .. line)
+    end, { desc = "Format selection (Rust)" })
+  end,
+})
+
+-- init.lua (version "laissez-faire")
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'rust',
+  callback = function()
+    vim.keymap.set('v', '<C-f>', function()
+      print("Formatage désactivé. Utilisez `:!rustfmt --check` pour vérifier la syntaxe.")
+    end, { desc = "Vérifie la syntaxe Rust sans formater" })
+  end,
+})
+
+--______________________________________________________________
+
+-- query erreurs
+vim.keymap.set({ 'i','n'}, '<F12>', function()
+
+  vim.cmd('write!')  --sauvegarde forcé
+
+  vim.diagnostic.reset()  -- Nettoie les erreurs précédentes
+
+  -- Exécute cargo check (plus rapide que build) 
+  vim.fn.system('cargo check')
+  vim.diagnostic.setloclist() -- force à afficher la liste de message
+
+  if vim.fn.mode() == 'i' then vim.cmd('stopinsert') end
+end, { desc = "[Rust] Check + Sauvegarde (F11)" })
+
+
+--______________________________________________________________
 
 -- Configuration pour les diagnostics (version ultra-simple)
 vim.diagnostic.config({
@@ -193,20 +292,6 @@ vim.keymap.set({ 'i','n'}, '<A-p>', ':lprev<CR>', { desc = "Erreur précédente"
 vim.keymap.set({ 'i','n'}, '<A-c>', ':lclose<CR>', { desc = "Fermer la liste des erreurs" })
 
 
--- query erreurs
-vim.keymap.set({ 'i','n'}, '<F12>', function()
-
-  vim.cmd('write!')  --sauvegarde forcé
-
-  vim.diagnostic.reset()  -- Nettoie les erreurs précédentes
-
-  -- Exécute cargo check (plus rapide que build) 
-  vim.fn.system('cargo check')
-  vim.diagnostic.setloclist() -- force à afficher la liste de message
-
-  if vim.fn.mode() == 'i' then vim.cmd('stopinsert') end
-end, { desc = "[Rust] Check + Sauvegarde (F12)" })
-
 
 
 
@@ -227,6 +312,8 @@ ibl.setup({
     indent = { char = "│", highlight = {"IblIndentChar"} },
     scope = { enabled = false },
 })
+
+
 
 --______________________________________________________________
 --les commandes 
@@ -256,8 +343,7 @@ vim.keymap.set('n', '<A-q>', '/', { desc = "Rechercher" })  -- `query search`
 vim.keymap.set('n', '<A-a>', function()
   local path = "/home/soleil/Zsnipset"
   if vim.fn.filereadable(path) == 1 then
-    vim.cmd(':vsplit ' .. path)
-  else
+    vim.cmd(':vsplit ' .. path)  else
     print("Chemin introuvable : " .. path)
   end
 end, { desc = "Ouvrir Zsnipset verticale" })
@@ -315,6 +401,8 @@ vim.keymap.set('n', '<C-m>', function()
 end, { desc = "Nouvelle ligne indentée + tabulation", silent = true })
 
 
+
+--______________________________________________________________
 
 
 
@@ -437,5 +525,6 @@ vim.opt.list = true
 vim.opt.listchars = {
   eol = '¶',       -- Saut de ligne
 }
+
 
 
