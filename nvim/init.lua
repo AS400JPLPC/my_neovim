@@ -26,12 +26,16 @@ vim.opt.ignorecase = true -- ignore la casse quand on recherche
 vim.opt.smartcase = true -- sauf quand on fait une recherche avec des majuscules, on rebascule en 
 vim.opt.signcolumn = "yes"
 
--- presse papier
-vim.opt.clipboard = "unnamedplus" -- on utilise le presse papier du système par défaut
 
-vim.opt.swapfile = false -- on supprime le pénible fichier de sw
 
-vim.opt.undofile = true -- on autorise l'undo à l'infini (même quand on revient sur un fichier qu'on avait fermé)
+
+
+
+
+
+--vim.opt.swapfile = false -- on supprime le pénible fichier de sw
+
+--vim.opt.undofile = true -- on autorise l'undo à l'infini (même quand on revient sur un fichier qu'on avait fermé)
 
 vim.opt.iskeyword:append("-") -- on traite les mots avec des - comme un seul mot
 
@@ -47,8 +51,7 @@ vim.opt.timeoutlen = 500  -- Délai pour les séquences de touches (ex: <Esc>+O)
 
 -- Surligner la ligne du curseur
 vim.opt.cursorline = true
--- Curseur clignotant
-vim.opt.guicursor = "a:blinkon100"
+
 
 
 --______________________________________________________________
@@ -57,6 +60,27 @@ vim.opt.guicursor = "a:blinkon100"
 for i = 1, 11 do
    vim.keymap.set({'n', 'i'}, '<F' .. i .. '>', '<Nop>')
 end
+
+--______________________________________________________________
+
+
+-- =============================================
+-- Configuration du presse-papiers (install parcellite xclip)
+-- =============================================
+vim.opt.clipboard:append({ "unnamedplus" })  -- Utilise le registre `+` pour le presse-papiers système
+vim.g.clipboard = {
+  name = 'xclip',
+  copy = { ['+'] = 'xclip -selection clipboard', ['*'] = 'xclip -selection primary' },
+  paste = { ['+'] = 'xclip -selection clipboard -o', ['*'] = 'xclip -selection primary -o' },
+  cache_enabled = true,
+}
+-- =============================================
+-- Mappings pour copier/coller/supprimer
+-- =============================================
+vim.keymap.set('v', '<C-c>', '"*y', { noremap = true } { desc = "copy to cliboard" })
+vim.keymap.set({'n','v'}, '<C-v>', '"*p', { noremap = true } { desc = "copy from cliboard" })
+vim.keymap.set('i', '<C-v>', '<C-r>+', { noremap = true } { desc = "replace from cliboard" })
+vim.keymap.set({'n', 'v'}, '<C-d>', '"d', { desc = "delete text select" })
 
 
 
@@ -74,7 +98,9 @@ function Statusline.active()
     local smode = string.format("%s",vim.fn.mode())
     -- Calcul du padding pour atteindre max_width (120) :
     local padding = string.rep(" ", max_width - #filename - #position - #smode - #modified -30)
-
+-- change color for insert
+vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235]])
+if (smode == "i")  then vim.cmd([[highlight CursorLine guibg=#00005f ctermbg=17 ]]) end
 
     return string.format("[%s]%s position:%s    :mode:%s    modifier:%s", filename, padding, position, smode, modified)
 end
@@ -187,10 +213,10 @@ lspconfig.rust_analyzer.setup({
  
 
       on_attach = function(client, bufnr)
-        -- Désactive le formatage automatique (tu préfères le contrôle manuel, Memory #1)
+        -- Désactive le formatage automatique 
         client.server_capabilities.documentFormattingProvider = false
 
-        -- Active la complétion LSP native (comme discuté précédemment)
+        -- Active la complétion LSP native 
         vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
         vim.keymap.set('i', '<C-Space>', '<C-x><C-o>', { buffer = bufnr })
 
@@ -234,7 +260,7 @@ vim.api.nvim_create_autocmd('FileType', {
   pattern = 'rust',
   callback = function()
     vim.keymap.set('v', '<C-f>', function()
-      print("Formatage désactivé. Utilisez `:!rustfmt --check` pour vérifier la syntaxe.")
+      print("Formatage désactivé. Utilisez `:<C-F>` pour vérifier la syntaxe.")
     end, { desc = "Vérifie la syntaxe Rust sans formater" })
   end,
 })
@@ -317,13 +343,6 @@ ibl.setup({
 
 --______________________________________________________________
 --les commandes 
--- work  clipboard
-
-vim.keymap.set({'n', 'v'}, '<C-c>', '"+y', { desc = "copy to cliboard" })
-vim.keymap.set({'n', 'v'}, '<C-v>', '"+p', { desc = "copy from cliboard" })
-vim.keymap.set({'n', 'v'}, '<C-d>', '"d', { desc = "delete text select" })
-
-
 -- sauvegarde  
 vim.keymap.set({'i','n'}, '<C-s>', function() 
 vim.cmd(':write!')
@@ -510,7 +529,7 @@ vim.cmd([[
   highlight Cursor guifg=NONE ctermfg=NONE guibg=NONE ctermbg=NONE gui=reverse cterm=reverse
 
   set guicursor=n-v-c:block-blinkon300-blinkoff300
-  set guicursor+=i-ci-ve:ver25
+  set guicursor+=i-ci-ve:block-blinkon300-blinkoff300
   set guicursor+=r-cr:hor20,o:hor20
 
 
@@ -519,7 +538,7 @@ vim.cmd([[
 ]])
 
 --set colorcolumn=120
-
+--   set guicursor+=i-ci-ve:ver25
 -- Afficher les caractères spéciaux (tabulations, espaces, sauts de ligne)
 vim.opt.list = true
 vim.opt.listchars = {
