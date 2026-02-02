@@ -391,7 +391,14 @@ vim.keymap.set({'n', 'i'}, '<A-m>', '<Esc>%', { desc = "Aller à la parenthèse 
 
 -- Raccourcis en mode NORMAL ( standard keyboard )
 
-vim.keymap.set({'i', 'v', 's', 'x'}, '<Esc>', '<Esc>', { silent = true, noremap = true }) -- Réinitialise <Esc> pour un retour immédiat en mode normal
+vim.keymap.set({'i', 'v', 's', 'x'}, '<Esc>', function()
+    vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235]])
+    if vim.fn.mode() == 'i' then vim.cmd('stopinsert') end
+    vim.cmd([[ execute "normal! \<ESC>" ]])
+end, { silent = true, noremap = true }) -- Réinitialise <Esc> pour un retour immédiat en mode normal
+
+
+
 vim.keymap.set('n', '<Del>', 'x', { desc = "Supprimer le caractère sous le curseur" })  -- `delete_char_forward`
 vim.keymap.set('n', '<Up>', 'k', { desc = "Monter d'une ligne" })                     -- `move_visual_line_up`
 vim.keymap.set('n', '<Down>', 'j', { desc = "Descendre d'une ligne" })               -- `move_visual_line_down`
