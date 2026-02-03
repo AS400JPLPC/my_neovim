@@ -67,7 +67,7 @@ end
 -- =============================================
 -- Configuration du presse-papiers (install parcellite xclip)
 -- =============================================
-vim.opt.clipboard:append({ "unnamedplus" })  -- Utilise le registre `+` pour le presse-papiers système
+vim.cmd(':set clipboard+=unnamedplus')-- Utilise le registre `+` pour le presse-papiers système
 vim.g.clipboard = {
   name = 'xclip',
   copy = { ['+'] = 'xclip -selection clipboard', ['*'] = 'xclip -selection primary' },
