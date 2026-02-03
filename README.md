@@ -30,8 +30,8 @@ The “LSP” for Rust was configured by Mistral and tested by me, striking a ba
 “Keep it as simple as possible.”**
   
   
-**Following an update  2026-02-02**  neovim: NVIM v0.11.6 my clipboard has become obsolete  Neovim uses wl-clipboard.  
-update command <Esc>: forces normal mode ‘n’ and line color. 
+**2026-02-02** update neovim: NVIM v0.11.6 my clipboard has become obsolete  Neovim uses wl-clipboard.  
+**2026-02-03** update command <Esc>: forces normal mode ‘n’ and line color. 
 
 Solution for xfce4:
 install   xclip and parcellite 
