@@ -77,11 +77,10 @@ vim.g.clipboard = {
 -- =============================================
 -- Mappings pour copier/coller/supprimer
 -- =============================================
-vim.keymap.set('v', '<C-c>', '"*y', { noremap = true } , { desc = "copy to cliboard" })
-vim.keymap.set({'n','v'}, '<C-v>', '"*p', { noremap = true } , { desc = "copy from cliboard" })
-vim.keymap.set('i', '<C-v>', '<C-r>+', { noremap = true }, { desc = "replace from cliboard" })
-vim.keymap.set({'n', 'v'}, '<C-d>', '"d', { desc = "delete text select" })
-
+vim.keymap.set('v', '<C-c>', '"+y', { noremap = true, desc = "Copy to clipboard" })
+vim.keymap.set({'n', 'v'}, '<C-v>', '"+p', { noremap = true, desc = "Paste from clipboard" })
+vim.keymap.set('i', '<C-v>', '<C-r>+', { noremap = true, desc = "Paste from clipboard in insert mode" })
+vim.keymap.set({'n', 'v'}, '<C-d>', '"_d', { noremap = true, desc = "Delete selected text" })
 
 
 --______________________________________________________________
