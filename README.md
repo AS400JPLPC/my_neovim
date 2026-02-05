@@ -31,10 +31,18 @@ The “LSP” for Rust was configured by Mistral and tested by me, striking a ba
   
   
 **2026-02-02** update neovim: NVIM v0.11.6 my clipboard has become obsolete  Neovim uses wl-clipboard.  
-**2026-02-03 02:50** update command <Esc>: forces normal mode ‘n’ and line color. 
+**2026-02-03 02:50** update command "Esc": forces normal mode ‘n’ and line color. 
 **2026-02-03 10:50** update clipboard   grrrrrrrr  
   
-**2026-02-03 11:10** update clipboard  with documentation from neovim and the internet
+**2026-02-03 11:10** update clipboard  with documentation from neovim and the internet  
+  
+  
+**2026-02-05 09:20** Problems with  "C-q" replace  
+change "A-q"  direct output without saving
+change "A-r"  search/query
+change "A-k"  Retrieve the last buffer 
+-- disables replace mode replace mode by default "C-q"
+Purge unnecessary functions  
   
   
 **Solution for xfce4:  does not work properly with clipman for neovim

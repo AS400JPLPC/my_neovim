@@ -53,7 +53,6 @@ vim.opt.timeoutlen = 500  -- Délai pour les séquences de touches (ex: <Esc>+O)
 vim.opt.cursorline = true
 
 
-
 --______________________________________________________________
 -- Désactiver les touches de fonction    F1..F11
 
@@ -61,26 +60,63 @@ for i = 1, 11 do
    vim.keymap.set({'n', 'i'}, '<F' .. i .. '>', '<Nop>')
 end
 
+-- Autorise uniquement les commandes de base
+local allowed_commands = {
+  w = true,   -- sauvegarder
+  q = true,   -- quitter
+  x = true,   -- sauvegarder et quitter
+  y = true,   -- copier (yank)
+  p = true,   -- coller (put)
+  d = true,   -- supprimer (delete)
+  u = true,   -- annuler (undo)
+  ["Ctrl+r"] = true, -- rétablir (redo)
+  ["/"] = true, -- recherche
+  n = true,   -- recherche suivante
+  N = true,   -- recherche précédente
+  h = true, j = true, k = true, l = true, -- déplacements
+  i = true, a = true, o = true, -- modes insertion
+  v = true,   -- mode visuel
+  ["<Esc>"] = true, -- quitter le mode insertion/remplacement
+}
+
+-- Désactive tout le reste en mode normal
+vim.keymap.set('n', ':',
+  function()
+    local input = vim.fn.getcmdline():match('^[%a]+')
+    if not allowed_commands[input] then
+      print("Commande désactivée. Utilise :w, :q, y, p, d, u, /, etc.")
+      return ''
+    end
+    return ':'
+  end,
+  { expr = true }
+)
+
+
+
+
 --______________________________________________________________
-
-
+-- désactive remplacement
+-- Quitte le mode R (Replacement) avec Ctrl+Q
+vim.keymap.set('i', '<C-q>', '<Esc>', { noremap = true, desc = "Quitter le mode insertion/remplacement" })
+vim.keymap.set('n', '<C-q>', '<Esc>', { noremap = true, desc = "Quitter le mode normal" })
+vim.keymap.set('i', '<C-\\>', '<Nop>', { noremap = true }) -- Désactive Ctrl+\
 -- =============================================
 -- Configuration du presse-papiers (install parcellite xclip)
 -- =============================================
-vim.cmd(':set clipboard+=unnamedplus')-- Utilise le registre `+` pour le presse-papiers système
+vim.cmd(':set clipboard+=unnamedplus')
 vim.g.clipboard = {
   name = 'xclip',
-  copy = { ['+'] = 'xclip -selection clipboard', ['*'] = 'xclip -selection primary' },
-  paste = { ['+'] = 'xclip -selection clipboard -o', ['*'] = 'xclip -selection primary -o' },
+  copy = { ['+'] = 'xclip -selection clipboard', ['*'] = 'xclip -selection clipboard' },
+  paste = { ['+'] = 'xclip -selection clipboard -o', ['*'] = 'xclip -selection clipboard -o' },
   cache_enabled = true,
 }
--- =============================================
--- Mappings pour copier/coller/supprimer
--- =============================================
-vim.keymap.set('v', '<C-c>', '"+y', { noremap = true, desc = "Copy to clipboard" })
-vim.keymap.set({'n', 'v'}, '<C-v>', '"+p', { noremap = true, desc = "Paste from clipboard" })
-vim.keymap.set('i', '<C-v>', '<C-r>+', { noremap = true, desc = "Paste from clipboard in insert mode" })
+-- Mappings (corrigés et testés)
+vim.keymap.set('v', '<C-c>', '"*y', { noremap = true, desc = "Copy to clipboard" })
+vim.keymap.set({'n', 'v'}, '<C-v>', '"*p', { noremap = true, desc = "Paste from clipboard" })
+vim.keymap.set('i', '<C-v>', '<C-r>+', { noremap = true, desc = "Paste in insert mode" })
 vim.keymap.set({'n', 'v'}, '<C-d>', '"_d', { noremap = true, desc = "Delete selected text" })
+
 
 
 --______________________________________________________________
@@ -157,7 +193,7 @@ lspconfig.rust_analyzer.setup({
         buildScripts = { enable = true },  -- Analyse les scripts de build
       },
 
-      -- Vérifications avec Clippy (rigueur comme en Zig)
+      -- Vérifications avec Clippy 
       check = {
         command = "clippy",
         extraArgs = {
@@ -172,7 +208,7 @@ lspconfig.rust_analyzer.setup({
       checkOnSave = {
         enable = true,
         command = "clippy",
-        extraArgs = { "--no-deps" },
+        extraArgs = { "--no-deps"},
       },
 
       -- Formatage (120 colonnes, comme vos standards)
@@ -231,38 +267,6 @@ lspconfig.rust_analyzer.setup({
 -- Désactive les logs LSP (pour éviter la pollution)
 -- vim.lsp.set_log_level("warn")  -- N'affiche que les warnings et erreurs (pas les infos)
 
-
-
--- Formater la sélection Rust avec <C-F> (minimaliste)
--- se repositionne approximativement à l'origine de la commande
--- Nettoyage rapide : Utile pour formater des blocs non critiques (ex: corps de fonctions simples module *.rs)
-vim.api.nvim_create_autocmd('FileType', {
-  pattern = 'rust',
-  callback = function()
-    vim.keymap.set('v', '<C-F>', function()
-    local line = vim.fn.line("v")
-    -- Sauvegarde la sélection dans un registre temporaire
-    vim.cmd('noautocmd w !rustfmt --config max_width=120,comment_width=120,wrap_comments=false > /tmp/rustfmt_temp.rs')
-    -- Remplace la sélection par le résultat formaté
-    vim.cmd(':%!cat /tmp/rustfmt_temp.rs')
-    -- Nettoie le fichier temporaire
-    vim.fn.delete('/tmp/rustfmt_temp.rs')
-    -- repositon normal
-    vim.cmd([[ execute "normal! \<ESC>" ]])
-    vim.cmd(':' .. line)
-    end, { desc = "Format selection (Rust)" })
-  end,
-})
-
--- init.lua (version "laissez-faire")
-vim.api.nvim_create_autocmd('FileType', {
-  pattern = 'rust',
-  callback = function()
-    vim.keymap.set('v', '<C-f>', function()
-      print("Formatage désactivé. Utilisez `:<C-F>` pour vérifier la syntaxe.")
-    end, { desc = "Vérifie la syntaxe Rust sans formater" })
-  end,
-})
 
 --______________________________________________________________
 
@@ -351,9 +355,9 @@ end, { desc = "Sauvegarder" })
 
 
 -- Raccourcis en mode NORMAL 
-vim.keymap.set('n', '<C-q>', ':qa!<CR>', { desc = "quit full hard no backup" })
+vim.keymap.set('n', '<A-q>', ':qa!<CR>', { desc = "quit full hard no backup" })
 
-vim.keymap.set('n', '<A-q>', '/', { desc = "Rechercher" })  -- `query search`
+vim.keymap.set('n', '<A-r>', '/', { desc = "Rechercher" })  -- `query search`
 
 
 
@@ -382,7 +386,7 @@ vim.keymap.set('n', 'r', '<C-r>', { desc = "Rétablir" })                       
 vim.keymap.set('n', 'n', 'n', { desc = "Rechercher l'occurrence suivante" })         -- `search_next` (déjà natif)
 vim.keymap.set('n', 'N', 'N', { desc = "Rechercher l'occurrence précédente" })       -- `search_prev` (déjà natif)
 
-vim.keymap.set('n', '<M-ù>', ':set list!<CR>', { desc = "Basculer l'affichage des caractères spéciaux" })
+vim.keymap.set('n', '<A-u>', ':set list!<CR>', { desc = "Basculer l'affichage des caractères spéciaux" })
 
 
 
@@ -461,7 +465,7 @@ end, { desc = "Fermer le buffer et revenir sur l'explorateur de fichiers" })
 
 --______________________________________________________________
 -- Récupérer le dernier buffer fermé (en cas d'erreur)
-vim.keymap.set({'n', 'i', 'v'}, '<C-R>', function()
+vim.keymap.set({'n', 'i', 'v'}, '<A-k>', function()
   vim.cmd('e!')  -- Recharge le buffer actuel (annule les modifications non sauvegardées)
   print("↩️ Buffer actuel rechargé (modifications non sauvegardées perdues)")
 end, { desc = "Recharger le buffer actuel", silent = false })
@@ -512,8 +516,28 @@ vim.keymap.set({'n', 'i', 'v'}, '<C-l>', function()
 end, { desc = "Purge TOTALE (sauf buffer actuel)", silent = false })
 
 
+
+--______________________________________________________________
+-- Afficher les caractères spéciaux (tabulations, espaces, sauts de ligne)
+vim.opt.list = true
+vim.opt.listchars = {
+  eol = '¶',       -- Saut de ligne
+}
 --______________________________________________________________
 
+-- comment    Light Salmon
+-- string     Green
+-- number     Orange
+-- keyword    dark Orange
+-- function   Deep Sky Blue
+-- type       Yelow
+-- identifier orchid
+-- coolean    Wheat
+-- error      red
+-- nontext    back red
+-- constant   Dark Olive Green
+
+-- https://www.ditig.com/256-colors-cheat-sheet
 
 
 vim.cmd([[
@@ -524,9 +548,11 @@ vim.cmd([[
   highlight Function guifg=#51afef ctermfg=39 gui=none
   highlight Type guifg=#d7d700 ctermfg=184 gui=none
   highlight Identifier guifg=#d75fff ctermfg=170 gui=none
-  highlight Boolean guifg=#af5fff ctermfg=135 gui=none
+  highlight Boolean guifg=#87875f ctermfg=101 gui=none
   highlight Error guifg=#ff0000 ctermfg=196 gui=none
   highlight NonText guifg=#461613 gui=none
+  highlight Constant guifg=#87af5f ctermfg=107 guibg=none
+
 
   highlight CursorLine guibg=#262626 ctermbg=235
   highlight CursorColumn guibg=#262626 ctermbg=235
@@ -542,14 +568,8 @@ vim.cmd([[
   highlight statusline guibg=#000000 guifg=#ff0000 gui=none
 
 ]])
-
 --set colorcolumn=120
 --   set guicursor+=i-ci-ve:ver25
--- Afficher les caractères spéciaux (tabulations, espaces, sauts de ligne)
-vim.opt.list = true
-vim.opt.listchars = {
-  eol = '¶',       -- Saut de ligne
-}
 
 
 
