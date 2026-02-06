@@ -48,7 +48,9 @@ Purge unnecessary functions
 **Solution for xfce4:  does not work properly with clipman for neovim
 install   xclip and parcellite **
   
+**2026-02-06 11:15**  Addition of “xsel” installation for Neovim and redesign of the copy/paste function     
   
+Those using Wayland should not encounter any issues; you simply need to install wl_clipboard.
   
   
   

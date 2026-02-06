@@ -94,25 +94,18 @@ vim.keymap.set('n', ':',
 
 
 
-
---______________________________________________________________
--- désactive remplacement
--- Quitte le mode R (Replacement) avec Ctrl+Q
-vim.keymap.set('i', '<C-q>', '<Esc>', { noremap = true, desc = "Quitter le mode insertion/remplacement" })
-vim.keymap.set('n', '<C-q>', '<Esc>', { noremap = true, desc = "Quitter le mode normal" })
-vim.keymap.set('i', '<C-\\>', '<Nop>', { noremap = true }) -- Désactive Ctrl+\
 -- =============================================
--- Configuration du presse-papiers (install parcellite xclip)
+-- Configuration du presse-papiers (install parcellite xclip xsel)
 -- =============================================
 vim.cmd(':set clipboard+=unnamedplus')
 vim.g.clipboard = {
   name = 'xclip',
-  copy = { ['+'] = 'xclip -selection clipboard', ['*'] = 'xclip -selection clipboard' },
-  paste = { ['+'] = 'xclip -selection clipboard -o', ['*'] = 'xclip -selection clipboard -o' },
+  copy = { ['+'] = 'xclip -selection primary', ['*'] = 'xclip -selection clipboard' },
+  paste = { ['+'] = 'xclip -selection primary -o', ['*'] = 'xclip -selection clipboard -o' },
   cache_enabled = true,
 }
 -- Mappings (corrigés et testés)
-vim.keymap.set('v', '<C-c>', '"*y', { noremap = true, desc = "Copy to clipboard" })
+vim.keymap.set('v', '<C-c>', '"*y', { noremap = true, desc = "Copy to primary" })
 vim.keymap.set({'n', 'v'}, '<C-v>', '"*p', { noremap = true, desc = "Paste from clipboard" })
 vim.keymap.set('i', '<C-v>', '<C-r>+', { noremap = true, desc = "Paste in insert mode" })
 vim.keymap.set({'n', 'v'}, '<C-d>', '"_d', { noremap = true, desc = "Delete selected text" })
@@ -265,7 +258,7 @@ lspconfig.rust_analyzer.setup({
       end,
 })
 -- Désactive les logs LSP (pour éviter la pollution)
--- vim.lsp.set_log_level("warn")  -- N'affiche que les warnings et erreurs (pas les infos)
+vim.lsp.set_log_level("warn")  -- N'affiche que les warnings et erreurs (pas les infos)
 
 
 --______________________________________________________________
