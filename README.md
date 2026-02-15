@@ -1,6 +1,12 @@
 
 neovim for rust   
   
+  
+  
+Support for the new lsp-neovim <BR/>
+   
+
+
 
 Version stable     
 Because I can't spend all my time configuring an editor... 1 month Because I can't spend all my time configuring an editor... It took me a month to find the right balance and turn it into a real tool.
@@ -49,6 +55,37 @@ Purge unnecessary functions
 install   xclip and parcellite **
   
 **2026-02-06 11:15**  Addition of “xsel” installation for Neovim and redesign of the copy/paste function     
+
+**2026-02-14 22:30**  Remove config and lspconfig <BR/>
+Support for the new lsp-neovim <BR/>  
+add: F2 and A-l view neovim.png<BR/>  
+restructuring init.lua, for greater readability<BR/>  
+
+
+<BR/>
+config bashrc<BR/>
+
+alias rust-analyzer="$HOME/.cargo/bin/rust-analyzer"<BR/>
+alias cargo-clippy="cargo clippy --no-deps -- -W clippy::pedantic -A clippy::needless_return"<BR/>
+alias rfc="cargo fmt -- --check"<BR/>
+alias rustfmt="$HOME/.cargo/bin/rustfmt"<BR/>
+<BR/>
+
+. "$HOME/.cargo/env"<BR/>
+
+alias n='nvim'  # Alias court pour Neovim<BR/>
+
+nvimc() {<BR/>
+    nvim "$@" +'terminal cargo check --all-features'<BR/>
+}<BR/>
+
+
+
+
+
+
+
+
   
 Those using Wayland should not encounter any issues; you simply need to install wl_clipboard.
   
@@ -59,8 +96,6 @@ Those using Wayland should not encounter any issues; you simply need to install 
 a minimal configuration with 2 plugins optimized for Rust
 with a VTE terminal 
   
-
-I installed Neovim and Neovim-LSPConfig with Pacman.
 
 I wanted to have very few dependencies in my configuration, which is why I downloaded two plugins.
 

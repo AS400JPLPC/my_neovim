@@ -27,15 +27,10 @@ vim.opt.smartcase = true -- sauf quand on fait une recherche avec des majuscules
 vim.opt.signcolumn = "yes"
 
 
+vim.bo.swapfile = false  -- Désactive les fichiers swap pour les buffers LSP
+vim.bo.undofile = false  -- Désactive l'undo persistant 
+vim.bo.synmaxcol = 2000  -- Limite la coloration syntaxique aux 2000 premières colonnes 
 
-
-
-
-
-
---vim.opt.swapfile = false -- on supprime le pénible fichier de sw
-
---vim.opt.undofile = true -- on autorise l'undo à l'infini (même quand on revient sur un fichier qu'on avait fermé)
 
 vim.opt.iskeyword:append("-") -- on traite les mots avec des - comme un seul mot
 
@@ -52,12 +47,15 @@ vim.opt.timeoutlen = 500  -- Délai pour les séquences de touches (ex: <Esc>+O)
 -- Surligner la ligne du curseur
 vim.opt.cursorline = true
 
-
+--______________________________________________________________
 --______________________________________________________________
 -- Désactiver les touches de fonction    F1..F11
 
+--1. Désactive F1, F3-F11 (laisse F2 et F12)
 for i = 1, 11 do
+  if i ~= 2 then  -- Garde F2 (F12 n'est pas dans 1-11, donc pas besoin de l'exclure)
    vim.keymap.set({'n', 'i'}, '<F' .. i .. '>', '<Nop>')
+  end
 end
 
 -- Autorise uniquement les commandes de base
@@ -93,7 +91,20 @@ vim.keymap.set('n', ':',
 )
 
 
+-- Supprime le mapping problématique utiliser par ex: <A-q> --> ':qa!<CR>'
+vim.keymap.del('n', ':')
 
+
+-- Désactive remplacement 
+vim.keymap.set('i', '<Insert>', function()
+    vim.cmd('stopinsert') 
+    vim.cmd([[ execute "normal! \<ESC>" ]])
+end, { silent = true, noremap = true })
+-- Désactive insertion
+vim.keymap.set('n', 's', function()
+    vim.cmd('stopinsert') 
+    vim.cmd([[ execute "normal! \<ESC>" ]])
+end, { silent = true, noremap = true })
 -- =============================================
 -- Configuration du presse-papiers (install parcellite xclip xsel)
 -- =============================================
@@ -169,101 +180,144 @@ vim.api.nvim_create_autocmd({ "BufEnter" }, {
 })
 
 
+-- =============================================
+-- Configuration LSP pour Rust (version optimisée)
+-- =============================================
 
---______________________________________________________________
+-- 1. Fonction d'attachement (améliorée)
+local on_attach = function(client, bufnr)
+  -- Désactive le formatage automatique (comme tu le préfères)
+  client.server_capabilities.documentFormattingProvider = false
 
--- Configuration optimisée pour rust-analyzer (avec lspconfig)
--- Configuration de rust-analyzer pour TERMRUST (version validée)
-local lspconfig = require('lspconfig')
-lspconfig.rust_analyzer.setup({
-  cmd = { os.getenv('HOME') .. '/.cargo/bin/rust-analyzer' },  -- Chemin explicite
+  -- Configuration de la complétion
+  vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+  vim.keymap.set('i', '<C-x><C-o>', '<C-x><C-o>', { buffer = bufnr, desc = "Complétion LSP" })
+
+  -- Configuration des diagnostics (version améliorée)
+  vim.diagnostic.config({
+    virtual_text = {
+      prefix = "●",  -- Symbole devant les erreurs
+      spacing = 4,    -- Espacement pour la lisibilité
+      source = "always",  -- Affiche toujours la source (ex: "rustc")
+    },
+    signs = true,    -- Icônes dans la marge
+    update_in_insert = true,  -- Désactivé en insertion (moins intrusif)
+    severity_sort = true,
+    float = {
+      border = "rounded",
+      focusable = false,
+      source = "always",  -- Affiche la source dans les floats
+    },
+  })
+
+  -- Affichage des diagnostics au survol (comme avant)
+  vim.api.nvim_create_autocmd('CursorHold', {
+    buffer = bufnr,
+    callback = function()
+      vim.diagnostic.open_float(nil, { focusable = false })
+    end,
+  })
+end
+
+-- 2. Capacités LSP (basique mais complète)
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities.textDocument.completion.completionItem = {
+  snippetSupport = true,
+  preselectSupport = true,
+  insertReplaceSupport = true,
+  labelDetailsSupport = true,
+  deprecatedSupport = true,
+  commitCharactersSupport = true,
+  tagSupport = { valueSet = { 1 } },
+  resolveSupport = { properties = { 'documentation', 'detail', 'additionalTextEdits' } },
+}
+
+vim.lsp.config.rust_analyzer = {
+  on_attach = on_attach,
+  capabilities = capabilities,
+  cmd = { vim.env.HOME .. '/.cargo/bin/rust-analyzer' },  -- Chemin absolu
+  filetypes = { 'rust' },
+  root_markers = { "Cargo.toml", ".git" },  -- Marqueurs de racine
+  single_file_support = true,  -- Support des fichiers uniques
 
   settings = {
     ['rust-analyzer'] = {
-      -- Gestion des dépendances et builds
+      diagnostics = { enable = true },  -- Diagnostics activés
       cargo = {
-        features = "all",  -- Active toutes les features (comme dans vos validations Zig)
-        buildScripts = { enable = true },  -- Analyse les scripts de build
+        loadOutDirsFromCheck = false,  -- Évite les problèmes de cache
+        buildScripts = { enable = true },  -- Active les scripts de build
       },
+      procMacro = { enable = true },  -- Active les macros
 
-      -- Vérifications avec Clippy 
-      check = {
-        command = "clippy",
-        extraArgs = {
-          "--no-deps",  -- Ignore les dépendances
-          "--",
-          "-W", "clippy::pedantic",  -- Mode strict
-          "-A", "clippy::needless_return",  -- Désactive les warnings inutiles
-        },
-      },
-
-      -- Vérification à la sauvegarde
       checkOnSave = {
-        enable = true,
-        command = "clippy",
-        extraArgs = { "--no-deps"},
+        enable = true, 
+        command = "clippy",  -- Utilise Clippy pour les vérifications
       },
-
-      -- Formatage (120 colonnes, comme vos standards)
       rustfmt = {
-        extraArgs = {
-          "--config",
-          "max_width=120",  -- Largeur fixe
-          "comment_width=120",  -- Commentaires alignés
-          "wrap_comments=false",  -- Pas de retour à la ligne forcé
-        },
-        enableRangeFormatting = true,  -- Permet le formatage de sélection (<C-f>)
+        extraArgs = { "--config", "max_width=120" },  -- Largeur de ligne
       },
-
-      -- Gestion des macros (pour vos macros externes dans TERMRUST)
-      procMacro = { enable = true },
-
-      -- Exclusions (propreté du projet)
-      files = {
-        excludeDirs = { "target/", ".git/" },  -- Ignore les dossiers système
-      },
-
-      -- Réduction du bruit (comme vos préférences)
-      logs = { level = "warn" },  -- Seules les erreurs sont affichées
-
-      -- Désactive les fonctionnalités intrusives
-      completion = {
-        postfix = { enable = false },  -- Pas de snippets automatiques
-        autoimport = { enable = false },  -- Pas d'auto-imports
-      },
-
-      -- Désactive le cache (pour éviter les latences)
-      cachePriming = { enable = false },
     },
   },
 
+  -- 4. Initialisation (comme dans ta config)
+  before_init = function(init_params, config)
+    if config.settings and config.settings['rust-analyzer'] then
+      init_params.initializationOptions = config.settings['rust-analyzer']
+    end
+  end,
+}
 
- 
 
-      on_attach = function(client, bufnr)
-        -- Désactive le formatage automatique 
-        client.server_capabilities.documentFormattingProvider = false
+-- 5. Active le LSP
+vim.lsp.enable("rust_analyzer")
 
-        -- Active la complétion LSP native 
-        vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
-        vim.keymap.set('i', '<C-Space>', '<C-x><C-o>', { buffer = bufnr })
+-- =============================================
+-- Gestion des erreurs 
+-- =============================================
 
-        -- **Nouveau : Affichage des diagnostics au survol**
-        vim.api.nvim_create_autocmd('CursorHold', {
-          buffer = bufnr,
-          callback = function()
-            vim.diagnostic.open_float(nil, { focusable = false })
-          end
-        })
-      end,
+-- Fonction pour afficher les erreurs en bas (améliorée)
+function _G.show_diagnostics()
+  local diagnostics = vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR })
+  if #diagnostics > 0 then
+    vim.diagnostic.setloclist({ open = false })
+    vim.cmd("lopen")
+  else
+    vim.cmd("lclose")
+  end
+end
+
+-- Affichage automatique après sauvegarde (avec délai)
+vim.api.nvim_create_autocmd("BufWritePost", {
+  pattern = "*.rs",
+  callback = function()
+    vim.defer_fn(function() show_diagnostics() end, 500)  -- Délai de 500ms
+  end
 })
--- Désactive les logs LSP (pour éviter la pollution)
-vim.lsp.set_log_level("warn")  -- N'affiche que les warnings et erreurs (pas les infos)
+
+-- Raccourcis pour naviguer entre les erreurs (comme avant)
+vim.keymap.set({ 'n', 'i' }, '<A-n>', ':lnext<CR>', { desc = "Erreur suivante" })
+vim.keymap.set({ 'n', 'i' }, '<A-p>', ':lprev<CR>', { desc = "Erreur précédente" })
+vim.keymap.set({ 'n', 'i' }, '<A-c>', ':lclose<CR>', { desc = "Fermer la liste des erreurs" })
+vim.keymap.set({ 'n', 'i' }, '<A-l>', ':lopen<CR>', { desc = "Ouvrir la liste des erreurs" })
+
+
+
+--formate le prjet 
+vim.keymap.set('n', '<F2>', function()
+  local cwd = vim.fn.getcwd()
+  print("Formatage dans : " .. cwd)
+  local output = vim.fn.system('cd ' .. cwd .. ' && cargo fmt 2>&1')
+  if vim.v.shell_error == 0 then
+    print("✅ Projet formaté !")
+    vim.cmd('checktime')  -- Recharge les fichiers modifiés
+  else
+    print("❌ Échec : " .. output)
+  end
+end, { desc = "Formater le projet (F2)", silent = false })
 
 
 --______________________________________________________________
-
--- query erreurs
+-- query erreurs les erreur 
 vim.keymap.set({ 'i','n'}, '<F12>', function()
 
   vim.cmd('write!')  --sauvegarde forcé
@@ -275,50 +329,21 @@ vim.keymap.set({ 'i','n'}, '<F12>', function()
   vim.diagnostic.setloclist() -- force à afficher la liste de message
 
   if vim.fn.mode() == 'i' then vim.cmd('stopinsert') end
-end, { desc = "[Rust] Check + Sauvegarde (F11)" })
+end, { desc = "[Rust] Check + Sauvegarde (F12)" })
+
+--______________________________________________________________
+
+vim.keymap.set('n', '<A-d>', function()
+  local current = vim.diagnostic.config().virtual_text
+  vim.diagnostic.config({ virtual_text = not current })
+  print("Diagnostics en ligne : " .. (not current and "ON" or "OFF"))
+end, { desc = "Basculer les diagnostics en ligne" })
 
 
 --______________________________________________________________
-
--- Configuration pour les diagnostics (version ultra-simple)
-vim.diagnostic.config({
-  virtual_text = { prefix = "●" },  -- Symbole devant les erreurs
-  virtual_text = true,  -- Affiche les erreurs en ligne
-  signs = true,         -- Icônes dans la marge
-  update_in_insert = false,
-  float = { border = "rounded" },
-})
-
--- Fonction pour afficher les erreurs en bas
-function _G.show_diagnostics()
-    local diagnostics = vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR })
-    if #diagnostics > 0 then
-        vim.diagnostic.setloclist({ open = false })
-        vim.cmd("lopen")
-    else
-        vim.cmd("lclose")
-    end
-end
-
--- Affichage automatique après sauvegarde
-vim.api.nvim_create_autocmd("BufWritePost", {
-  pattern = "*.rs",
-  callback = function()
-    vim.defer_fn(function() show_diagnostics() end, 500)  -- Délai de 500ms
-  end
-})
-
--- Naviguer entre les erreurs
-vim.keymap.set({ 'i','n'}, '<A-n>', ':lnext<CR>', { desc = "Erreur suivante" })
-vim.keymap.set({ 'i','n'}, '<A-p>', ':lprev<CR>', { desc = "Erreur précédente" })
-vim.keymap.set({ 'i','n'}, '<A-c>', ':lclose<CR>', { desc = "Fermer la liste des erreurs" })
-
-
-
-
-
+-- les plugins
 --______________________________________________________________
--- les Plugins
+
 vim.cmd('packadd nvim-comment')
 require('nvim_comment').setup()
 -- Mapping pour commenter un bloc en mode visuel
@@ -350,7 +375,7 @@ end, { desc = "Sauvegarder" })
 -- Raccourcis en mode NORMAL 
 vim.keymap.set('n', '<A-q>', ':qa!<CR>', { desc = "quit full hard no backup" })
 
-vim.keymap.set('n', '<A-r>', '/', { desc = "Rechercher" })  -- `query search`
+vim.keymap.set('n', '<A-s>', '/', { desc = "Search" })  -- `query search`
 
 
 
@@ -405,25 +430,6 @@ vim.keymap.set('n', '<PageDown>', '<C-f>', { desc = "Page suivante" })          
 vim.keymap.set('n', '<Home>', '^', { desc = "Aller au début de la ligne" })          -- `goto_line_start`
 vim.keymap.set('n', '<End>', 'g_', { desc = "Aller à la fin de la ligne" })          -- `goto_line_end_newline`
 vim.keymap.set('n', '<CR>', 'o', { desc = "Insérer une nouvelle ligne" })            -- `insert_newline  Enter`
--- deux fonction enter
---______________________________________________________________
--- Insère une ligne en dessous, l'indente, ajoute une tabulation et reste en mode normal Enter
-vim.keymap.set('n', '<C-m>', function()
-  -- 1. Insère une ligne en dessous et quitte le mode insertion
-  vim.cmd('normal! o\027')
-
-  -- 2. Indente la ligne (selon le langage)
-  vim.cmd('normal! ==')
-
-  -- 3. Ajoute une tabulation au début de la ligne
-  vim.cmd('normal! i\t\027')
-
-  -- 4. Place le curseur après la tabulation
-  vim.cmd('normal! j$')
-end, { desc = "Nouvelle ligne indentée + tabulation", silent = true })
-
-
-
 --______________________________________________________________
 
 
@@ -559,6 +565,11 @@ vim.cmd([[
 
 
   highlight statusline guibg=#000000 guifg=#ff0000 gui=none
+
+  highlight DiagnosticError guifg=#ff0000 guibg=NONE ctermfg=196 gui=bold
+  highlight DiagnosticWarn guifg=#ffaf00 guibg=NONE ctermfg=214 gui=bold
+  highlight DiagnosticInfo guifg=#51afef guibg=NONE ctermfg=39 gui=bold
+  highlight DiagnosticHint guifg=#87af5f guibg=NONE ctermfg=107 gui=bold
 
 ]])
 --set colorcolumn=120
