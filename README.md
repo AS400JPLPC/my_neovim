@@ -3,9 +3,15 @@ neovim for rust
   
   
   
-Support for the new lsp-neovim <BR/>
-   
-
+Support for the lsp for neovim <BR/>    
+  
+  
+I did my best to use the basic keyboard keys, e.g., Del, Enter, Ins, etc. Similarly, I tried to stick to the traditional text editor keys, e.g., Ctrl-C, Ctrl-V. 
+     
+  
+<BR/>
+![2026-01-15_21-58-52_Tree](assset/2026-01-15_21-58-52_Tree.png)
+<BR/>
 
 
 Version stable     
@@ -96,6 +102,16 @@ Those using Wayland should not encounter any issues; you simply need to install 
 a minimal configuration with 2 plugins optimized for Rust
 with a VTE terminal 
   
+<BR/>
+git clone https://github.com/neovim/nvim-lspconfig ~/.config/nvim/pack/nvim/start/nvim-lspconfig
+<BR/>  
+    
+lspconfig: is the only current model that works with Rust's workspace; I haven't been able to get it to work with Neovim's LSP.
+  
+  
+  
+
+
 
 I wanted to have very few dependencies in my configuration, which is why I downloaded two plugins.
 

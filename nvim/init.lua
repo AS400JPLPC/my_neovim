@@ -47,9 +47,8 @@ vim.opt.timeoutlen = 500  -- Délai pour les séquences de touches (ex: <Esc>+O)
 -- Surligner la ligne du curseur
 vim.opt.cursorline = true
 
---______________________________________________________________
---______________________________________________________________
--- Désactiver les touches de fonction    F1..F11
+--***************************************************
+-- maping base  key 
 
 --1. Désactive F1, F3-F11 (laisse F2 et F12)
 for i = 1, 11 do
@@ -60,22 +59,24 @@ end
 
 -- Autorise uniquement les commandes de base
 local allowed_commands = {
-  w = true,   -- sauvegarder
-  q = true,   -- quitter
-  x = true,   -- sauvegarder et quitter
   y = true,   -- copier (yank)
   p = true,   -- coller (put)
-  d = true,   -- supprimer (delete)
+  d = true,   -- supprimer (delete) select
   u = true,   -- annuler (undo)
   ["Ctrl+r"] = true, -- rétablir (redo)
-  ["/"] = true, -- recherche
   n = true,   -- recherche suivante
   N = true,   -- recherche précédente
-  h = true, j = true, k = true, l = true, -- déplacements
-  i = true, a = true, o = true, -- modes insertion
+  o = true, -- modes insertion
   v = true,   -- mode visuel
   ["<Esc>"] = true, -- quitter le mode insertion/remplacement
 }
+--  h = true, j =true, k = true, l = true, -- déplacements
+--  x = true,   -- sauvegarder et quitter
+--  ["/"] = true, -- recherche
+--  q = true,   -- quitter
+--  w = true,   -- sauvegarder
+--  d = true,   -- supprimer (delete) select
+--  a = true,   -- modes insertion
 
 -- Désactive tout le reste en mode normal
 vim.keymap.set('n', ':',
@@ -91,12 +92,27 @@ vim.keymap.set('n', ':',
 )
 
 
--- Supprime le mapping problématique utiliser par ex: <A-q> --> ':qa!<CR>'
-vim.keymap.del('n', ':')
+-- use keyboard  ex i = Ins , x = del..
+--vim.keymap.del('n', ':')   -- ON
+vim.keymap.set('n', 'i', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','v'}, 'x', '<Esc>')  -- `OFF`
+vim.keymap.set('n', 'h', '<Esc>')  -- `OFF`
+vim.keymap.set('n', 'j', '<Esc>')  -- `OFF`
+vim.keymap.set('n', 'k', '<Esc>')  -- `OFF`
+vim.keymap.set('n', 'l', '<Esc>')  -- `OFF`
+vim.keymap.set('n', '/', '<Esc>')  -- `OFF`
+vim.keymap.set('n', 'q', '<Esc>')  -- `OFF`
+vim.keymap.set('n', 'w', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','v'}, 'd', '<Esc>')  -- `OFF`
+vim.keymap.set('n', 'a', '<Esc>')  -- `OFF`
+
+--*****************************************************************
+
 
 
 -- Désactive remplacement 
 vim.keymap.set('i', '<Insert>', function()
+    vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235]])
     vim.cmd('stopinsert') 
     vim.cmd([[ execute "normal! \<ESC>" ]])
 end, { silent = true, noremap = true })
@@ -231,6 +247,7 @@ capabilities.textDocument.completion.completionItem = {
   tagSupport = { valueSet = { 1 } },
   resolveSupport = { properties = { 'documentation', 'detail', 'additionalTextEdits' } },
 }
+
 
 vim.lsp.config.rust_analyzer = {
   on_attach = on_attach,
@@ -412,14 +429,13 @@ vim.keymap.set({'n', 'i'}, '<A-m>', '<Esc>%', { desc = "Aller à la parenthèse 
 
 -- Raccourcis en mode NORMAL ( standard keyboard )
 
-vim.keymap.set({'i', 'v', 's', 'x'}, '<Esc>', function()
+vim.keymap.set({'n','i', 'v', 's', 'x'}, '<Esc>', function()
     vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235]])
     if vim.fn.mode() == 'i' then vim.cmd('stopinsert') end
     vim.cmd([[ execute "normal! \<ESC>" ]])
 end, { silent = true, noremap = true }) -- Réinitialise <Esc> pour un retour immédiat en mode normal
 
-
-
+vim.keymap.set('n', '<Ins>', 'i', { desc = "mode insert" })  -- `mode Insert`
 vim.keymap.set('n', '<Del>', 'x', { desc = "Supprimer le caractère sous le curseur" })  -- `delete_char_forward`
 vim.keymap.set('n', '<Up>', 'k', { desc = "Monter d'une ligne" })                     -- `move_visual_line_up`
 vim.keymap.set('n', '<Down>', 'j', { desc = "Descendre d'une ligne" })               -- `move_visual_line_down`
@@ -431,7 +447,6 @@ vim.keymap.set('n', '<Home>', '^', { desc = "Aller au début de la ligne" })    
 vim.keymap.set('n', '<End>', 'g_', { desc = "Aller à la fin de la ligne" })          -- `goto_line_end_newline`
 vim.keymap.set('n', '<CR>', 'o', { desc = "Insérer une nouvelle ligne" })            -- `insert_newline  Enter`
 --______________________________________________________________
-
 
 
 
