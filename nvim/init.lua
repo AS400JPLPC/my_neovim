@@ -323,7 +323,7 @@ vim.keymap.set({ 'n', 'i' }, '<A-l>', ':lopen<CR>', { desc = "Ouvrir la liste de
 vim.keymap.set('n', '<F2>', function()
   local cwd = vim.fn.getcwd()
   print("Formatage dans : " .. cwd)
-  local output = vim.fn.system('cd ' .. cwd .. ' && cargo fmt 2>&1')
+  local output = vim.fn.system('cd ' .. cwd .. ' && cargo  fmt  -q  --all 2>&1')
   if vim.v.shell_error == 0 then
     print("✅ Projet formaté !")
     vim.cmd('checktime')  -- Recharge les fichiers modifiés

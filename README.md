@@ -9,9 +9,14 @@ Support for the lsp for neovim <BR/>
 I did my best to use the basic keyboard keys, e.g., Del, Enter, Ins, etc. Similarly, I tried to stick to the traditional text editor keys, e.g., Ctrl-C, Ctrl-V. 
      
   
-<BR/>
+  
+  
+
+
 ![2026-01-15_21-58-52_Tree](assset/2026-01-15_21-58-52_Tree.png)
-<BR/>
+  
+  
+
 
 
 Version stable     
