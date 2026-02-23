@@ -21,7 +21,12 @@ I did my best to use the basic keyboard keys, e.g., Del, Enter, Ins, etc. Simila
 
 Version stable     
 Because I can't spend all my time configuring an editor... 1 month Because I can't spend all my time configuring an editor... It took me a month to find the right balance and turn it into a real tool.
-**THANK YOU to the OPEN-SOURCE community**, 
+**THANK YOU to the OPEN-SOURCE community**,   
+  
+  
+cargo_check_errors  Start-up control of the project.  
+  
+"F2" active source Format the project, involves automatic saving.  
   
 "F12" active source compilation option, to check consistency, involves automatic saving.  
   
@@ -47,29 +52,12 @@ The “LSP” for Rust was configured by Mistral and tested by me, striking a ba
 “Keep it as simple as possible.”**
   
   
-**2026-02-02** update neovim: NVIM v0.11.6 my clipboard has become obsolete  Neovim uses wl-clipboard.  
-**2026-02-03 02:50** update command "Esc": forces normal mode ‘n’ and line color. 
-**2026-02-03 10:50** update clipboard   grrrrrrrr  
-  
-**2026-02-03 11:10** update clipboard  with documentation from neovim and the internet  
-  
-  
-**2026-02-05 09:20** Problems with  "C-q" replace  
-change "A-q"  direct output without saving
-change "A-r"  search/query
-change "A-k"  Retrieve the last buffer 
--- disables replace mode replace mode by default "C-q"
-Purge unnecessary functions  
-  
-  
 **Solution for xfce4:  does not work properly with clipman for neovim
 install   xclip and parcellite **
   
-**2026-02-06 11:15**  Addition of “xsel” installation for Neovim and redesign of the copy/paste function     
 
 **2026-02-14 22:30**  Remove config and lspconfig <BR/>
 Support for the new lsp-neovim <BR/>  
-add: F2 and A-l view neovim.png<BR/>  
 restructuring init.lua, for greater readability<BR/>  
 
 
@@ -78,27 +66,12 @@ config bashrc<BR/>
 
 alias rust-analyzer="$HOME/.cargo/bin/rust-analyzer"<BR/>
 alias cargo-clippy="cargo clippy --no-deps -- -W clippy::pedantic -A clippy::needless_return"<BR/>
-alias rfc="cargo fmt -- --check"<BR/>
 alias rustfmt="$HOME/.cargo/bin/rustfmt"<BR/>
 <BR/>
 
 . "$HOME/.cargo/env"<BR/>
 
-alias n='nvim'  # Alias court pour Neovim<BR/>
 
-nvimc() {<BR/>
-    nvim "$@" +'terminal cargo check --all-features'<BR/>
-}<BR/>
-
-
-
-
-
-
-
-
-  
-Those using Wayland should not encounter any issues; you simply need to install wl_clipboard.
   
   
   
@@ -111,12 +84,18 @@ with a VTE terminal
 git clone https://github.com/neovim/nvim-lspconfig ~/.config/nvim/pack/nvim/start/nvim-lspconfig
 <BR/>  
     
-lspconfig: is the only current model that works with Rust's workspace; I haven't been able to get it to work with Neovim's LSP.
+lspconfig: is the only current model that works with Rust's workspace; 
   
   
   
 
+pacman -s  jq 
 
+pacman -s  parcelite 
+
+pacman -S  xclip
+
+pacman -S  xsel
 
 I wanted to have very few dependencies in my configuration, which is why I downloaded two plugins.
 
@@ -142,14 +121,14 @@ I wanted to have very few dependencies in my configuration, which is why I downl
   
 # TermRust / [RUST_TERM]
 
-**Statut** : validation Terminé (janvier 2026).
+**Statut** : validation Terminé (fevrier 2026).
 **Auteur** : Jean-Pierre Laroche.
 **Collaboration** : Développement initial avec l’assistance technique de **Le Chat** (Mistral AI), pour la conversion Zig→Rust et l’optimisation des modules.
 
 ---
 
 ## 📋 État actuel
-- **Fonctionnel** : 90% des modules sont opérationnels (ex: `field.rs`, `term.rs`, gestion des décimaux AFNOR/PostgreSQL).
+- **Fonctionnel** : 90% des modules sont opérationnels (ex: `field.rs`, `termcom.rs`, gestion des décimaux AFNOR/PostgreSQL).
 - **En validation** :
   - Tests finaux sur les performances de `rust-analyzer` (optimisations appliquées).
   - Validation des conversions Zig→Rust pour les modules critiques (ex: `ZIG_TERM`).
@@ -161,9 +140,6 @@ I wanted to have very few dependencies in my configuration, which is why I downl
 - **Le Chat (Mistral AI)** :
   - Aide à la **conversion du code Zig vers Rust** (ex: structures `Field`, gestion des attributs `ZoneAttr`).
   - Optimisation des **performances de rust-analyzer** (réduction des latences pour les gros fichiers).
-  - Support pour la **gestion des décimaux AFNOR** et l’intégration avec PostgreSQL.
-- **Communauté** :
-  - Remerciements aux premiers utilisateurs pour leurs retours (signalez les bugs via les *Issues* GitHub).
 
 ---
 
