@@ -49,13 +49,14 @@ vim.opt.cursorline = true
 
 
 
---***************************************************
+--=============================================
 -- maping base  key 
+--=============================================
 
---1. Désactive F1, F3-F11 (laisse F2 et F12)
-for i = 1, 11 do
-  if i ~= 2 then  -- Garde F2 (F12 n'est pas dans 1-11, donc pas besoin de l'exclure)
-   vim.keymap.set({'n', 'i'}, '<F' .. i .. '>', '<Nop>')
+-- Désactive toutes les touches de fonction SAUF F2, F5 et F12
+for i = 1, 12 do
+  if i ~= 2 and i ~= 5 and i ~= 7 and i ~= 12 then  -- Garde F2, F5 et F12
+    vim.keymap.set({'n', 'i', 'v'}, '<F' .. i .. '>', '<Nop>')
   end
 end
 
@@ -66,6 +67,7 @@ local allowed_commands = {
   u = true,   -- annuler (undo)
   n = true,   -- recherche suivante
   N = true,   -- recherche précédente
+  o = true, -- modes insertion
   v = true,   -- mode visuel
   ["<Esc>"] = true, -- quitter le mode insertion/remplacement
 }
@@ -76,7 +78,6 @@ local allowed_commands = {
 --  w = true,   -- sauvegarder
 --  d = true,   -- supprimer (delete) select
 --  a = true,   -- modes insertion
---  o = true, -- modes insertion
 -- ["Ctrl+r"] = true, -- rétablir (redo)
 -- Désactive tout le reste en mode normal
 
@@ -117,8 +118,106 @@ vim.keymap.set('n', 'd', '<Esc>')  -- `OFF`
 --*****************************************************************
 
 
+--============================================================
+-- Système de log unifié  (ex: log("⚙️ Bin Name:", bin_name))
 
+--log("✅ rust-analyzer est actif")
+-- → [01] ✅ rust-analyzer est actif
+
+-- Cas 2: Table avec message
+--log({message = "Test passé"})
+-- → [02] Test passé
+
+-- Cas 3: Table simple
+--log(1, 2, 3)
+-- → [03] 1, 2, 3
+
+-- Cas 4: Table complexe
+--log({status = false, details = {...}})
+-- → [04] [table]
+
+-- Cas 5: Mixte
+--log("Bin Name:", "Ptest", {version = 1.0})
+-- → [05] Bin Name: Ptest [table]
+--============================================================
+local messages = {}
+
+-- Fonction pour formater une table de manière intelligente
+local function format_table(v)
+  if type(v) ~= "table" then return tostring(v) end
+
+  -- Champs prioritaires à afficher
+  local priority_fields = {"message", "details", "error", "result", "output"}
+  local other_fields = {}
+
+  -- Séparation des champs prioritaires et autres
+  for k, val in pairs(v) do
+    if type(val) ~= "function" then  -- On ignore les fonctions
+      if vim.tbl_contains(priority_fields, k) then
+        table.insert(other_fields, 1, string.format("%s=%s", k, tostring(val)))
+      else
+        table.insert(other_fields, string.format("%s=%s", k, tostring(val)))
+      end
+    end
+  end
+
+  -- Si on a des champs prioritaires, on les met en avant
+  if #other_fields > 0 then
+    return "{" .. table.concat(other_fields, ", ") .. "}"
+  else
+    return "[table vide]"
+  end
+end
+
+-- Fonction log principale
+function _G.log(...)
+  local args = {}
+  for i = 1, select('#', ...) do
+    local v = select(i, ...)
+    if type(v) == "table" then
+      local parts = {}
+      for k, val in pairs(v) do
+        if type(val) ~= "function" then
+          table.insert(parts, string.format("%s=%s", k, tostring(val)))
+        end
+      end
+      table.insert(args, "{" .. table.concat(parts, ", ") .. "}")
+    else
+      table.insert(args, tostring(v))
+    end
+  end
+  table.insert(messages, args)
+end
+
+
+-- Affichage (F5)
+vim.keymap.set('n', '<F5>', function()
+  vim.cmd('noautocmd new | setlocal buftype=nofile bufhidden=hide noswapfile')
+  local buf = vim.api.nvim_get_current_buf()
+  vim.api.nvim_buf_set_name(buf, 'MessageHistory_' .. os.time())
+
+  local lines = {}
+  if #messages == 0 then
+    table.insert(lines, "Aucun message en mémoire")
+  else
+    for i, msg in ipairs(messages) do
+      table.insert(lines, string.format("[%02d] %s", i, table.concat(msg, " ")))
+    end
+  end
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+end)
+
+-- Effacer (F7)
+vim.keymap.set('n', '<F7>', function()
+  messages = {}
+  print("✅ Historique effacé")
+end)
+
+
+
+--=============================================
 -- Désactive remplacement 
+--=============================================
 vim.keymap.set('i', '<Insert>', function()
     vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235]])
     vim.cmd('stopinsert') 
@@ -223,6 +322,7 @@ end
 
 -- 2. Fonction on_attach 
 local on_attach = function(client, bufnr)
+
   -- Désactive le formatage automatique
   client.server_capabilities.documentFormattingProvider = false
 
@@ -276,22 +376,31 @@ capabilities.textDocument.completion.completionItem = {
   commitCharactersSupport = true,
   tagSupport = { valueSet = { 1 } },
   resolveSupport = { properties = { 'documentation', 'detail', 'additionalTextEdits' } },
+  workspace = {
+    didChangeWatchedFiles = { dynamicRegistration = true },
+  },
 }
 
 -- 4. Configuration rust-analyzer 
-vim.lsp.config.rust_analyzer = {
-  on_attach = on_attach,  -- <-- Utilise la nouvelle fonction nvim
+vim.lsp.config('rust_analyzer', {
+
+  on_attach = on_attach,
+
 
   capabilities = capabilities,
+
   cmd = { vim.env.HOME .. '/.cargo/bin/rust-analyzer' },
+
   filetypes = { 'rust' },
+
   root_markers = { "Cargo.toml", ".git" },
+
+
   single_file_support = true,
 
   settings = {
     ['rust-analyzer'] = {
       cargo = {
-        target = "target",  -- Chemin standard pour les artefacts
         buildScripts = {
           enable = true,    -- Active l'analyse des build scripts
         },
@@ -307,13 +416,23 @@ vim.lsp.config.rust_analyzer = {
           enable = true,        -- Active les fonctionnalités expérimentales (meilleure détection)
         },
       disabled = {"unlinked-file"},  -- Désactive le warning pour les fichiers non liés
+
       procMacro = { enable = true },
+
       checkOnSave = {
         enable = true,
         command = "clippy",  -- Gardez clippy pour plus de rigueur
       },
+
       rustfmt = {
         extraArgs = { "--config", "max_width=120" },
+      },
+
+      lens = { enable = true },  -- Affiche les références/implementation
+
+      inlayHints = {
+        enable = true,
+        chainingHints = true,  -- Utile pour les méthodes enchaînées
       },
     },
   },
@@ -324,8 +443,9 @@ vim.lsp.config.rust_analyzer = {
     end
   end,
 
-
-}
+-- LspInfo
+log("✅ Init server RUST !")
+})
 
 -- 5. Active le LSP 
 vim.lsp.enable("rust_analyzer")
@@ -395,13 +515,14 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 --______________________________________________________________
--- F2-formate le prjet
+-- F2-formate le projet
 --______________________________________________________________
 vim.keymap.set('n', '<F2>', function()
   local cwd = vim.fn.getcwd()
   print("Formatage dans : " .. cwd)
   local output = vim.fn.system('cd ' .. cwd .. ' && cargo  fmt  -q  --all 2>&1')
   if vim.v.shell_error == 0 then
+    log("✅ Projet formaté !")
     print("✅ Projet formaté !")
     vim.cmd('checktime')  -- Recharge les fichiers modifiés
   else
@@ -417,20 +538,24 @@ end, { desc = "Formater le projet (F2)", silent = false })
 --______________________________________________________________
 -- 1 -check projet 
 local function find_first_binary_in_src_bin()
- 
-   local cargo_toml = io.popen(
-    'cargo read-manifest 2>/dev/null | jq -r \'.targets[] | select(.kind[] | contains("bin")) | .name\'')
+  -- Commande corrigée pour extraire le nom du premier binaire
+  local cargo_toml = io.popen(
+    'cargo read-manifest 2>/dev/null | jq -r \'.targets[] | select(.kind[]? | contains("bin")) | .name\' 2>/dev/null'
+  )
 
   if cargo_toml then
-    local first_bin = cargo_toml:read('*l')  -- Prend le premier binaire trouvé
+    local first_bin = cargo_toml:read('*l')  -- Lit la première ligne (le nom du binaire)
     cargo_toml:close()
-    if first_bin and first_bin ~= '' then
+
+    -- Vérifie que le résultat est valide et non vide
+    if first_bin and first_bin ~= '' and first_bin ~= 'null' then
       return first_bin
     end
   end
 
-  return ""
+  return ""  -- Retourne une chaîne vide si aucun binaire trouvé
 end
+
 
 -- recherche binaire
 local function get_build_command()
@@ -454,6 +579,10 @@ local function get_build_command()
 end
 
 vim.keymap.set('n', '<F12>', function()
+
+
+  local src_name = vim.fn.expand('%:p')
+
   vim.cmd('write')
   -- 1. Détection automatique
   local bin_name = get_build_command()
@@ -462,7 +591,7 @@ vim.keymap.set('n', '<F12>', function()
   print("⚙️ Bin Name : " .. bin_name)
   vim.cmd('sleep 2000m')  -- Pause 
   end
-bin_name = ""
+
 
 
     
@@ -503,19 +632,38 @@ bin_name = ""
 
     vim.fn.setqflist(qf_list, 'r')
     if #qf_list == 0 then
-        if bin_name ~= "" then
-          print("✅ Build réussi -- " .. bin_name)
-        else 
-              print("✅ not Build")
-        end
+      log("✅ Build TEST réussi" .. src_name)
+      print("✅ Build TEST réussi")
       vim.cmd('cclose')
     else
       vim.cmd('copen')
+
+     log(string.format("⚠️ %d problème(s)", #qf_list) .. src_name)
       print(string.format("⚠️ %d problème(s)", #qf_list))
     end
 
 
 end, { desc = 'Build (F12)', silent = false })
+
+--______________________________________________________________
+
+-- Fermeture quickfix et erreur standard
+vim.keymap.set({'n','i'}, '<A-c>', function()
+ -- 1. Ferme la quickfix
+  vim.cmd('cclose') -- ferme la iste des erreur quickfix
+  vim.cmd('lclose') -- ferme la liste des erreurs
+
+  -- 2. Efface les diagnostics LSP (si vous utilisez un LSP comme rust-analyzer)
+  vim.diagnostic.reset()
+
+  -- 3. Rafraîchit le buffer actuel
+  vim.cmd('checktime')
+  vim.cmd('e!')
+
+  print("🔄 Diagnostics et buffer réinitialisés")
+end, { desc = 'Réinitialiser diagnostics', silent = false })
+
+
 
 --______________________________________________________________
 -- les plugins
@@ -554,27 +702,11 @@ end, { desc = "Ouvrir Zsnipset verticale" })
 
 --__________________________
 
--- Fermeture quickfix et erreur standard
-vim.keymap.set({'n','i'}, '<A-c>', function()
- -- 1. Ferme la quickfix
-  vim.cmd('cclose') -- ferme la iste des erreur quickfix
-  vim.cmd('lclose') -- ferme la liste des erreurs
-
-  -- 2. Efface les diagnostics LSP (si vous utilisez un LSP comme rust-analyzer)
-  vim.diagnostic.reset()
-
-  -- 3. Rafraîchit le buffer actuel
-  vim.cmd('checktime')
-  vim.cmd('e!')
-
-  print("🔄 Diagnostics et buffer réinitialisés")
-end, { desc = 'Réinitialiser diagnostics', silent = false })
-
 -- Raccourcis pour naviguer entre les erreurs (comme avant)
 vim.keymap.set({ 'n', 'i' }, '<A-n>', ':lnext<CR>', { desc = "Erreur suivante" })
 vim.keymap.set({ 'n', 'i' }, '<A-p>', ':lprev<CR>', { desc = "Erreur précédente" })
-
---______________________________________________________________
+--vim.keymap.set({ 'n', 'i' }, '<A-c>', ':lclose<CR>', { desc = "Fermer la liste des erreurs" })
+--vim.keymap.set({ 'n', 'i' }, '<A-l>', ':lopen<CR>', { desc = "Ouvrir la liste des erreurs" })
 
 
 
@@ -592,8 +724,6 @@ vim.keymap.set('n', '<A-g>', 'G', { desc = "Aller à la dernière ligne" })  -- 
 vim.keymap.set('n', '<A-h>', vim.lsp.buf.hover, { desc = "Afficher l'aide (hover)" })  -- `hover`
 
 vim.keymap.set({'n', 'i'}, '<A-m>', '<Esc>%', { desc = "Aller à la parenthèse correspondante" })  -- `match_brackets`
-
-vim.keymap.set('n', '<A-o>', 'o', { desc = "new ligne" })
 
 vim.keymap.set('n', '<A-q>', ':qa!<CR>', { desc = "quit full hard no backup" })
 
@@ -687,7 +817,7 @@ end, { desc = "Aller à la ligne" })
 
 --______________________________________________________________
 -- CLEAR
--- Purge TOTALE : buffers SAUF le buffer actuel, historique, presse-papiers, le buffer #
+-- Purge TOTALE : buffers SAUF le buffer actuel, historique, presse-papiers, ET le buffer #
 -- Version avec vérification explicite du buffer #
 vim.keymap.set({'n', 'i', 'v'}, '<C-l>', function()
   local current_buf = vim.api.nvim_get_current_buf()
@@ -726,6 +856,10 @@ end, { desc = "Purge TOTALE (sauf buffer actuel)", silent = false })
 vim.keymap.set({'i','n'}, '<C-s>', function() 
 vim.cmd(':write!')
 if vim.fn.mode() == 'i' then vim.cmd('stopinsert') end
+
+local src_name = vim.fn.expand('%:p')
+log("✅ sauvegarde" .. src_name)
+
 end, { desc = "Sauvegarder" })
 
 --______________________________________________________________

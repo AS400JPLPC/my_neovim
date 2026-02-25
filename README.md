@@ -24,11 +24,17 @@ Because I can't spend all my time configuring an editor... 1 month Because I can
 **THANK YOU to the OPEN-SOURCE community**,   
   
   
-cargo_check_errors  Start-up control of the project.  
+cargo_check_errors  Start-up control of the project.    
+  
+Function: “log” for traceability, or debugging  
   
 "F2" active source Format the project, involves automatic saving.  
   
-"F12" active source compilation option, to check consistency, involves automatic saving.  
+"F12" active source compilation option, to check consistency, involves automatic saving.    
+  
+"F5" display log  
+  
+"7"  clear log  
   
 UTF-8 character consistency  
   
@@ -56,10 +62,10 @@ The “LSP” for Rust was configured by Mistral and tested by me, striking a ba
 install   xclip and parcellite **
   
 
-**2026-02-14 22:30**  Remove config and lspconfig <BR/>
+**2026-02-25 09:45** <BR/>
 Support for the new lsp-neovim <BR/>  
 restructuring init.lua, for greater readability<BR/>  
-
+I am testing it in real life for everyday use.
 
 <BR/>
 config bashrc<BR/>
