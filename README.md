@@ -68,6 +68,27 @@ restructuring init.lua, for greater readability<BR/>
 I am testing it in real life for everyday use.
 
 <BR/>
+**2026-03-01 19:30** <BR/>
+Important information<BR/>
+Setbacks in approaching the F12 function
+and the control startup function that checks the integrity of the project: first, you have to open the Ntree page in the base project. Neovim will take the underlying structure into account even if you are in your modules, whereas if you skip this and access the controls, you will lose the links. This is only a minor constraint.
+
+Perhaps I should have used plugins, but the goal was to do as little external intervention as possible and use Neovim as much as possible to have an editor that works with Rust. For those who want another LSP, just change the LSP part; the rest is the same.
+
+Translated with DeepL.com (free version)  
+  
+<BR/>
+The F12 function has been unraveled, and shows you how to use the concept of dialogue for your errors.
+I could have unified the global control functions of the project, but I deliberately chose to keep both approaches.
+
+The traceability function, which will help you if you need to track the status of your “init.lua,” has been significantly improved.
+
+I also tried to stick to the scheme proposed by Neovim on how to handle LSP.
+
+Translated with DeepL.com (free version)
+<BR/>
+<BR/>
+
 config bashrc<BR/>
 
 alias rust-analyzer="$HOME/.cargo/bin/rust-analyzer"<BR/>

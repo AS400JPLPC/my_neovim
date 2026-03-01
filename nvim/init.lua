@@ -49,6 +49,7 @@ vim.opt.cursorline = true
 
 
 
+
 --=============================================
 -- maping base  key 
 --=============================================
@@ -264,7 +265,6 @@ if (smode == "i")  then vim.cmd([[highlight CursorLine guibg=#00005f ctermbg=17 
     return string.format("[%s]%s position:%s    :mode:%s    modifier:%s", filename, padding, position, smode, modified)
 end
 
-
 function Statusline.inactive()
     return " %t"
 end
@@ -288,22 +288,33 @@ vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
 })
 
 
--- Titre automatique pour les fichiers
-vim.api.nvim_create_autocmd({ "BufEnter" }, {
-    group = vim.api.nvim_create_augroup("AutoTitle", { clear = true }),
-    callback = function()
-        local filename = vim.fn.expand("%:t")
-        if filename and filename ~= "" then
-            vim.fn.chansend(vim.v.stderr, string.format("\27]0;%s\007", filename))
-        end
-    end,
-})
+
+
+--===============================================================
+-- pour avoir un onglet portant le nom du source
+--===============================================================
+vim.opt.title = false          -- Active la mise à jour du titre
+
+function _G.set_terminal_title(title)
+    if not title or title == "" then return end
+    local filename = vim.fn.expand("%:t")  -- Nom du fichier SEUL (ex: "fields.rs")
+    local title_string = string.format("\27]0;%s\7", filename)
+    io.stdout:write(title_string)
+    io.stdout:flush()
+    log(filename)  -- Optionnel : log le nom du fichier
+end
+
+
+-- Met à jour le titre avec UNIQUEMENT le nom du fichier (ex: "fields.rs")
+vim.cmd([[
+  autocmd BufEnter * lua set_terminal_title(vim.fn.expand("%:t"))
+]])
 
 
 
--- =============================================
+--===============================================================
 -- Configuration LSP pour Rust (version optimisée)
--- =============================================
+--===============================================================
 
 vim.api.nvim_create_autocmd({"BufNewFile", "BufRead"}, {
   pattern = "*",
@@ -336,7 +347,7 @@ local on_attach = function(client, bufnr)
     signs = true,
     update_in_insert = false,
     severity_sort = true,
-    float = { border = "rounded", focusable = false, source = "always" },
+    float = { border = "rounded", focusable = true, source = "always" },
   })
 
   -- Affichage des diagnostics au survol
@@ -386,7 +397,6 @@ vim.lsp.config('rust_analyzer', {
 
   on_attach = on_attach,
 
-
   capabilities = capabilities,
 
   cmd = { vim.env.HOME .. '/.cargo/bin/rust-analyzer' },
@@ -394,8 +404,7 @@ vim.lsp.config('rust_analyzer', {
   filetypes = { 'rust' },
 
   root_markers = { "Cargo.toml", ".git" },
-
-
+ 
   single_file_support = true,
 
   settings = {
@@ -411,12 +420,12 @@ vim.lsp.config('rust_analyzer', {
 
       diagnostics = {
            enable = rust_analyzer_diagnostics_enabled,
+           disabled = {"unlinked-file"},  -- Désactive le warning pour les fichiers non liés
         },
+
         experimental = {
           enable = true,        -- Active les fonctionnalités expérimentales (meilleure détection)
         },
-      disabled = {"unlinked-file"},  -- Désactive le warning pour les fichiers non liés
-
       procMacro = { enable = true },
 
       checkOnSave = {
@@ -443,6 +452,8 @@ vim.lsp.config('rust_analyzer', {
     end
   end,
 
+
+
 -- LspInfo
 log("✅ Init server RUST !")
 })
@@ -451,14 +462,9 @@ log("✅ Init server RUST !")
 vim.lsp.enable("rust_analyzer")
 
 
-
-
-
 -- =============================================
 -- Gestion des erreurs 
 -- =============================================
-
-
 
 
 -- Déclare la fonction une fois (évite la duplication)
@@ -531,6 +537,35 @@ vim.keymap.set('n', '<F2>', function()
 end, { desc = "Formater le projet (F2)", silent = false })
 
 
+--______________________________________________________________
+-- association des erreurs avec la gesion diagnostique  pour F12
+--______________________________________________________________
+-- Déclare la fonction globalement
+function _G.log_error(fichier, ligne, col, message)
+  -- Récupère la location list actuelle
+  local current_loclist = vim.fn.getloclist(0)
+
+
+  -- Ajoute la nouvelle erreur
+  table.insert(current_loclist, {
+    filename = fichier,
+    lnum = tonumber(ligne),
+    col = tonumber(col),
+    text = message,
+  })
+
+  -- Met à jour la location list
+  vim.fn.setloclist(0, current_loclist)
+
+  -- Ouvre la location list si elle n'est pas déjà ouverte
+  local loclist_wins = vim.fn.getloclist(0, { winid = 0 }).winid
+  if loclist_wins == 0 then
+    vim.cmd('lopen')
+  end
+
+end
+
+
 
 --______________________________________________________________
 -- F12 compile feature
@@ -578,10 +613,10 @@ local function get_build_command()
   return ""
 end
 
+
 vim.keymap.set('n', '<F12>', function()
 
 
-  local src_name = vim.fn.expand('%:p')
 
   vim.cmd('write')
   -- 1. Détection automatique
@@ -599,11 +634,13 @@ vim.keymap.set('n', '<F12>', function()
   --print("⚙️ Exécution : " .. cmd)
   --vim.cmd('sleep 3000m')  -- Pause de 3s
 
-
-
+  root_dir = function(fname)
+    -- Cherche Cargo.toml en remontant depuis fname
+    local cargo_toml = vim.fs.find({'Cargo.toml'}, { upward = true, path = vim.fs.dirname(fname) }) end
+    
    -- 2. Exécution et parsing complet
     local output = vim.fn.system(cmd .. " 2>&1")
-    local qf_list = {}
+    local qf_list = 0
     local current_error = {}
 
     for line in output:gmatch("[^\r\n]+") do
@@ -612,34 +649,28 @@ vim.keymap.set('n', '<F12>', function()
       elseif line:match('^%s*-->') then
         local file, lnum, col = line:match('%s*--> (%S+):(%d+):(%d+)')
         if file then
+          local msgtext = current_error.text or line
           current_error = {
             filename = file,
             lnum = tonumber(lnum),
             col = tonumber(col),
             text = (current_error.text or "") .. "\n" .. line
           }
+
+       -- log(current_error.filename, current_error.lnum, current_error.col,  msgtext)
+
+        _G.log_error(current_error.filename, current_error.lnum, current_error.col,  msgtext)
+        qf_list = qf_list + 1
         end
-      elseif line:match('^%s*|') and current_error and current_error.filename then
-        current_error.text = current_error.text .. "\n" .. line
-      elseif current_error and current_error.filename then
-        table.insert(qf_list, current_error)
-        current_error = {}
       end
     end
-    if current_error and current_error.filename then
-      table.insert(qf_list, current_error)
-    end
-
-    vim.fn.setqflist(qf_list, 'r')
-    if #qf_list == 0 then
-      log("✅ Build TEST réussi" .. src_name)
+    if qf_list == 0 then
+      log("✅ Build TEST réussi " .. bin_name)
       print("✅ Build TEST réussi")
-      vim.cmd('cclose')
+      vim.cmd('lclose')
     else
-      vim.cmd('copen')
-
-     log(string.format("⚠️ %d problème(s)", #qf_list) .. src_name)
-      print(string.format("⚠️ %d problème(s)", #qf_list))
+     log(string.format("⚠️ %d problème(s)  ",  qf_list) .. bin_name)
+      print(string.format("⚠️ %d problème(s) ", qf_list))
     end
 
 
@@ -921,7 +952,4 @@ vim.cmd([[
 
 ]])
 --   set guicursor+=i-ci-ve:ver25
-
-
-
 
