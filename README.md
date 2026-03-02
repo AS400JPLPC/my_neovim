@@ -12,13 +12,16 @@ I did my best to use the basic keyboard keys, e.g., Del, Enter, Ins, etc. Simila
   
   
 
-<br/>
-![2026-01-15_21-58-52_Tree](assset/2026-01-15_21-58-52_Tree.png)<br/>
+
+![2026-01-15_21-58-52_Tree](assset/2026-01-15_21-58-52_Tree.png)
+
+
   
   
  <br/>
 
 ![2026-03-02_20-30-01_config](assset/2026-03-02_20-30-01_config.png) <br/> <br/>
+
 
 
 Version stable     
@@ -101,7 +104,7 @@ Perhaps I should have used plugins, but the goal was to do as little external in
 
 Translated with DeepL.com (free version)  
 <BR/><BR/>
-2026-03-02 20:10  udpate tabulation ,  goto definition, Reference
+**2026-03-02 20:10**  udpate tabulation ,  goto definition, Reference
 <BR/>
   
 <BR/>
