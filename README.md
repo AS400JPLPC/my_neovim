@@ -12,17 +12,39 @@ I did my best to use the basic keyboard keys, e.g., Del, Enter, Ins, etc. Simila
   
   
 
-
-![2026-01-15_21-58-52_Tree](assset/2026-01-15_21-58-52_Tree.png)
+<br/>
+![2026-01-15_21-58-52_Tree](assset/2026-01-15_21-58-52_Tree.png)<br/>
   
   
+ <br/>
 
+![2026-03-02_20-30-01_config](assset/2026-03-02_20-30-01_config.png) <br/> <br/>
 
 
 Version stable     
 Because I can't spend all my time configuring an editor... 1 month Because I can't spend all my time configuring an editor... It took me a month to find the right balance and turn it into a real tool.
 **THANK YOU to the OPEN-SOURCE community**,   
-  
+  <BR/><BR/>
+
+|  | Fonctionnalité                  | implémentation          |                             |            |                          |
+|--|---------------------------------|-------------------------|-----------------------------|------------|--------------------------|
+|✅ |     Rust                        | nvim-comment plugin     |<C-t>                        |            |cohérence maximale        |
+|✅ |     Rust                        | ibl plugin              |¶, tabulations \t            |editorconfig|cohérence maximale        |
+|✅ | Navigation standard             | leader mappings         |Ctrl+c/Ctrl+v ......         |Neovims.png |                          |
+|✅ | Traçabilité                     | F5 Logs structurés      |Déjà intégré à votre workflow|            |utilisé goto definition   |
+|✅ | Formatage                       | F2 (cargo fmt)          |Standard et rapide           |            |                          |
+|✅ | Intégrité du projet             | F12 (cargo build check) |Vérification en un clic      |dialog      |                          |
+|✅ | Tabulations libres              | noexpandtab             |tabstop=4                    |            |Respect de vos préférences|
+|✅ | Gestion des buffers             | C-l Purge via raccourcis|Nettoyage facile             |            |                          |
+|✅ | Explorateur                     | C-e Ntree               |                             |            |Navigation fluide         |
+|✅ | Terminal cohérent               | Alacritty or VTE        |mêmes couleurs/comportements |            |Uniformité visuelle       |
+|✅ | Control d'intégrité au demarrage| fonction intégrée       |Automatique                  |dialog      |                          |
+|✅ | Alt-r reference  gd Definition  | fonction intégrée       |utilise grep / refrence      |dialog      |Intuitif et efficace      |
+ 
+ 
+ 
+
+<BR/><BR/>
   
 cargo_check_errors  Start-up control of the project.    
   
@@ -34,7 +56,9 @@ Function: “log” for traceability, or debugging
   
 "F5" display log  
   
-"7"  clear log  
+"7"  clear log    
+  
+"Alt-r"  Reference: I use “ripgrep,” which is normally included in your distro.
   
 UTF-8 character consistency  
   
@@ -76,6 +100,9 @@ and the control startup function that checks the integrity of the project: first
 Perhaps I should have used plugins, but the goal was to do as little external intervention as possible and use Neovim as much as possible to have an editor that works with Rust. For those who want another LSP, just change the LSP part; the rest is the same.
 
 Translated with DeepL.com (free version)  
+<BR/><BR/>
+2026-03-02 20:10  udpate tabulation ,  goto definition, Reference
+<BR/>
   
 <BR/>
 The F12 function has been unraveled, and shows you how to use the concept of dialogue for your errors.
@@ -124,6 +151,8 @@ pacman -S  xclip
 
 pacman -S  xsel
 
+pacman -S  greprip 
+
 I wanted to have very few dependencies in my configuration, which is why I downloaded two plugins.
 
 [lukas-reineke/indent-blankline.nvim](https://github.com/lukas-reineke/indent-blankline.nvim) 
@@ -141,11 +170,10 @@ I wanted to have very few dependencies in my configuration, which is why I downl
   
   
   
+ <br/>
+![2026-01-15_21-57-16_menu](assset/2026-01-15_21-57-16_menu.png) <br/>
 
-![2026-01-15_21-57-16_menu](assset/2026-01-15_21-57-16_menu.png)
 
-
-  
 # TermRust / [RUST_TERM]
 
 **Statut** : validation Terminé (fevrier 2026).

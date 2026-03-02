@@ -9,11 +9,15 @@ vim.opt.fileencoding = 'utf-8'    -- Encodage des fichiers ouverts/sauvegardés
 
 -- Configuration de base pour Neovim (120x45)
 vim.opt.number = true          -- Affiche les numéros de ligne (sauf dans le terminal)
-vim.opt.tabstop = 4            -- 4 espaces pour les tabulations (Rust/Zig)
-vim.opt.shiftwidth = 4         -- Idem pour l'indentation
 vim.opt.colorcolumn = "120"    -- Ligne verticale à 120 caractères (votre standard)
-vim.opt.expandtab = true       -- Remplace les tabulations par des espaces (pour cohérence)
 vim.opt.termguicolors = true   -- Pour les couleurs VTE 
+
+-- Utilise des VRAIES tabulations (\t) et non des espaces
+vim.opt.tabstop = 4          -- Largeur d'une tabulation (affichage)
+vim.opt.shiftwidth = 4       -- Largeur de l'indentation (>>, <<)
+vim.opt.expandtab = false    -- Désactive la conversion des \t en espaces
+vim.opt.softtabstop = 0      -- Désactive (évite les mélanges)
+vim.opt.smarttab = true      -- Comportement intelligent des tabulations
 
 
 -- Police (Source Code Pro, comme dans vos mémos)
@@ -262,13 +266,13 @@ function Statusline.active()
 vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235]])
 if (smode == "i")  then vim.cmd([[highlight CursorLine guibg=#00005f ctermbg=17 ]]) end
 
-    return string.format("[%s]%s position:%s    :mode:%s    modifier:%s", filename, padding, position, smode, modified)
+    return string.format("[%s]%s position:%s    :mode:%s    modifier:%s ", filename, padding, position, smode, modified)
 end
 
 function Statusline.inactive()
     return " %t"
 end
-	
+  
 local group = vim.api.nvim_create_augroup("Statusline", { clear = true })
 
 vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
@@ -293,7 +297,6 @@ vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
 --===============================================================
 -- pour avoir un onglet portant le nom du source
 --===============================================================
-vim.opt.title = false          -- Active la mise à jour du titre
 
 function _G.set_terminal_title(title)
     if not title or title == "" then return end
@@ -304,6 +307,7 @@ function _G.set_terminal_title(title)
     log(filename)  -- Optionnel : log le nom du fichier
 end
 
+vim.opt.title = false          -- Active la mise à jour du titre
 
 -- Met à jour le titre avec UNIQUEMENT le nom du fichier (ex: "fields.rs")
 vim.cmd([[
@@ -341,6 +345,10 @@ local on_attach = function(client, bufnr)
   vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
   vim.keymap.set('i', '<A-k>', '<C-x><C-o>', { buffer = bufnr, desc = "Complétion LSP" })
 
+  vim.keymap.set('n', 'gd', vim.lsp.buf.definition, { desc = "Aller à la définition" })
+
+  
+  
   -- Configuration des diagnostics (comme avant)
   vim.diagnostic.config({
     virtual_text = { prefix = "●", spacing = 4, source = "always" },
@@ -707,15 +715,66 @@ vim.keymap.set('v', '<C-t>', ':CommentToggle<CR>', { desc = "Commenter le bloc" 
 
 
 
+
 local ibl = require("ibl")
 vim.cmd([[
   highlight IblIndentChar guifg=#262626 ctermbg=235
 ]])
 ibl.setup({
-    indent = { char = "│", highlight = {"IblIndentChar"} },
+    indent = {
+        char = "",           -- Aucun caractère pour les espaces
+        tab_char = "│",      -- Affiche les \t comme │
+        highlight = {"IblIndentChar"},
+    },
     scope = { enabled = false },
 })
 
+
+-- Désactive l'affichage des caractères spéciaux
+vim.opt.list = false
+
+-- Configuration des fins de ligne (`¶`)
+-- Crée un espace de noms global pour les fins de ligne
+
+vim.cmd([[
+  let g:EOL_NS = nvim_create_namespace('EOL')
+]])
+-- Fonction pour mettre à jour les `¶`
+_G.update_eol = function()
+  local buf = vim.api.nvim_get_current_buf()
+  pcall(vim.api.nvim_buf_clear_namespace, buf, vim.g.EOL_NS, 0, -1)
+
+  local lines = vim.api.nvim_buf_line_count(buf)
+  for i = 1, lines do
+    local line = vim.api.nvim_buf_get_lines(buf, i - 1, i, false)[1]
+    if not line:match("^%s*$") then  -- Ignore les lignes vides
+      pcall(vim.api.nvim_buf_set_extmark, buf, vim.g.EOL_NS, i - 1, -1, {
+        virt_text = {{"¶", "NonText"}},
+        virt_text_pos = "overlay",
+      })
+    end
+  end
+end
+
+-- Active les `¶` automatiquement
+vim.cmd([[
+  autocmd BufEnter,TextChanged,InsertLeave * lua _G.update_eol()
+]])
+
+-- Désactive les `¶` en mode insertion
+vim.cmd([[
+  autocmd InsertEnter * lua vim.api.nvim_buf_clear_namespace(0, vim.g.EOL_NS, 0, -1)
+]])
+
+
+-- Convertit les espaces en tabulations à l'enregistrement
+-- Remplace les espaces par des \t
+vim.api.nvim_create_autocmd("BufWritePre", {
+  pattern = "*.rs",  -- Fichiers Rust/Zig
+  callback = function()
+    vim.cmd([[ retab! ]])
+  end,
+})
 
 
 --______________________________________________________________
@@ -772,8 +831,21 @@ vim.keymap.set('n', '<A-v>', ':vsplit<CR>:wincmd l<CR>', { desc = "Split vertica
 
 vim.keymap.set('n', '<A-w>', ':vnew<CR>:wincmd l<CR>', { desc = "new Split verticale" })  -- `vsplit_new`
 
-vim.keymap.set('n', '<A-x>', ':q<CR>', { desc = "Fermer la fenêtre courante du split sans quitter Neovim" })
 
+local function close_current_split()
+  -- Vérifie si on est dans un split (plus d'une fenêtre ouverte)
+  if 
+  vim.fn.winnr('$') > 1 then
+    -- Demande confirmation
+    local choice = vim.fn.confirm("Fermer la fenêtre courante du split ?", "&Oui\n&Non", 2)
+    if choice == 1 then
+      vim.cmd('close')  -- Ferme la fenêtre courante
+    end
+  end
+end
+
+-- Mapping pour lancer la fonction
+vim.keymap.set('n', '<A-x>', close_current_split, { desc = "Fermer la fenêtre courante du split" })
 
 
 -- Récupérer le dernier buffer fermé (en cas d'erreur)
@@ -781,6 +853,83 @@ vim.keymap.set({'n', 'i', 'v'}, '<A-z>', function()
   vim.cmd('e!')  -- Recharge le buffer actuel (annule les modifications non sauvegardées)
   print("↩️ Buffer actuel rechargé (modifications non sauvegardées perdues)")
 end, { desc = "Recharger le buffer actuel", silent = false })
+
+
+
+
+local function search_word_interactive()
+  vim.ui.input({
+    prompt = "Mot à rechercher: ",
+  }, function(word)
+    if not word or word == "" then
+      vim.notify("Saisie invalide (attendu: un mot)", vim.log.levels.ERROR)
+      return
+    end
+
+    -- Exécute la recherche avec rg
+    local cmd = string.format("rg --no-heading --line-number --column --word-regexp --color=never '%s' .", word)
+    local output = vim.fn.system(cmd)
+
+    if vim.v.shell_error ~= 0 then
+      vim.notify("Erreur: " .. output, vim.log.levels.ERROR)
+      return
+    end
+
+    if output == "" then
+      vim.notify("Aucune occurrence trouvée pour: " .. word, vim.log.levels.INFO)
+      return
+    end
+
+    -- Parse les résultats
+    local qf_list = {}
+    local ns = vim.api.nvim_create_namespace("search_references")
+    local current_file = vim.fn.expand('%:p')
+    local count = 0
+
+    for line in output:gmatch("[^\r\n]+") do
+      local file, lnum, col, text = line:match('^(.-):(%d+):(%d+):(.*)')
+      if file then
+        table.insert(qf_list, {
+          filename = file,
+          lnum = tonumber(lnum),
+          col = tonumber(col),
+          text = text
+        })
+
+        -- Surligne dans le buffer actuel
+        if file == current_file then
+          local end_col = tonumber(col) - 1 + vim.fn.strchars(word)
+          vim.api.nvim_buf_add_highlight(
+            0, ns, "LspReferenceText",
+            tonumber(lnum) - 1,
+            tonumber(col) - 1,
+            end_col
+          )
+          count = count + 1
+        end
+      end
+    end
+
+    -- Affiche dans la Location List
+    if #qf_list > 0 then
+      vim.fn.setloclist(0, qf_list, 'r')
+      vim.cmd('lopen')
+      vim.notify(string.format("⚠️ %d occurrence(s) trouvées", #qf_list), vim.log.levels.INFO)
+    else
+      vim.notify("Aucune occurrence dans le buffer actuel", vim.log.levels.INFO)
+    end
+  end)
+end
+
+-- Mapping pour lancer la recherche interactive
+vim.keymap.set('n', '<A-r>', search_word_interactive, { desc = "Rechercher un mot (interactif)" })
+
+
+
+
+
+
+
 
 
 --______________________________________________________________
@@ -895,12 +1044,6 @@ end, { desc = "Sauvegarder" })
 
 --______________________________________________________________
 
-
--- Afficher les caractères spéciaux (tabulations, espaces, sauts de ligne)
-vim.opt.list = true
-vim.opt.listchars = {
-  eol = '¶',       -- Saut de ligne
-}
 --______________________________________________________________
 
 -- comment    Light Salmon
