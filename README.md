@@ -9,12 +9,6 @@ Support for the lsp for neovim <BR/>
 I did my best to use the basic keyboard keys, e.g., Del, Enter, Ins, etc. Similarly, I tried to stick to the traditional text editor keys, e.g., Ctrl-C, Ctrl-V. 
      
   
-  
-  
-
-
-![2026-01-15_21-58-52_Tree](assset/2026-01-15_21-58-52_Tree.png)
-
 
   
   
@@ -25,7 +19,7 @@ I did my best to use the basic keyboard keys, e.g., Del, Enter, Ins, etc. Simila
 
 
 Version stable     
-Because I can't spend all my time configuring an editor... 1 month Because I can't spend all my time configuring an editor... It took me a month to find the right balance and turn it into a real tool.
+Because I can't spend all my time configuring an editor... 2 month Because I can't spend all my time configuring an editor... It took me a month to find the right balance and turn it into a real tool.
 **THANK YOU to the OPEN-SOURCE community**,   
   <BR/><BR/>
 
@@ -39,10 +33,12 @@ Because I can't spend all my time configuring an editor... 1 month Because I can
 |✅ | Intégrité du projet             | F12 (cargo build check) |Vérification en un clic      |dialog      |                          |
 |✅ | Tabulations libres              | noexpandtab             |tabstop=4                    |            |Respect de vos préférences|
 |✅ | Gestion des buffers             | C-l Purge via raccourcis|Nettoyage facile             |            |                          |
-|✅ | Explorateur                     | C-e Ntree               |                             |            |Navigation fluide         |
+|✅ | Explorateur                     | C-e fzf                 |                             |            |Navigation fluide         |
+|✅ | Explorateur                     | C-f fzf     hold-file   |                             |            |Navigation fluide         |
 |✅ | Terminal cohérent               | Alacritty or VTE        |mêmes couleurs/comportements |            |Uniformité visuelle       |
 |✅ | Control d'intégrité au demarrage| fonction intégrée       |Automatique                  |dialog      |                          |
 |✅ | Alt-r reference  gd Definition  | fonction intégrée       |utilise grep / refrence      |dialog      |Intuitif et efficace      |
+|✅ | local tempdir                   | fonction intégrée       |"~/.cache/nvim/tmp/tmp_"     |            |                          |
  
  
  
@@ -74,7 +70,9 @@ the name of your source is displayed in the window title
   
 "C-l"Purge all buffers except the current “active source” buffer.  
   
-"C-e" accesses Neovim's internal explorer directly and closes buffers without saving  
+“C-e” directly accesses the explorer via “fzf plugin” and closes buffers without saving them.      
+  
+“C-f” directly accesses the explorer via “fzf plugin - hold-file” and closes buffers without saving them.  
   
 I'm leaving you a source  to wrap your Neovim, you can adapt it for terminal applications.(VTE4)  
    
@@ -106,6 +104,10 @@ Translated with DeepL.com (free version)
 <BR/><BR/>
 **2026-03-02 20:10**  udpate tabulation ,  goto definition, Reference
 <BR/>
+<BR/><BR/>
+**2026-03-07 22:30**  udpate full,  After all the tests, reset “init.lua” and minimum plugin distribution, introduce “fzf,” pipe Neovim sessions, and set up interactive Neovim formatting.<BR/>
+**2026-03-07 22:30** test: VTE and alacritty 
+<BR/>
   
 <BR/>
 The F12 function has been unraveled, and shows you how to use the concept of dialogue for your errors.
@@ -134,12 +136,10 @@ alias rustfmt="$HOME/.cargo/bin/rustfmt"<BR/>
   
 **My configuration made with Mistral IA**
 
-a minimal configuration with 2 plugins optimized for Rust
+a minimal configuration with 4 plugins, or I would have had to rewrite them, so I prefer to import them. optimized for Rust
 with a VTE terminal 
   
 <BR/>
-git clone https://github.com/neovim/nvim-lspconfig ~/.config/nvim/pack/nvim/start/nvim-lspconfig
-<BR/>  
     
 lspconfig: is the only current model that works with Rust's workspace; 
   
@@ -156,12 +156,33 @@ pacman -S  xsel
 
 pacman -S  greprip 
 
+pacman -S  bat 
+
+pacman -S ttf-firacode-nerd 
+
+pacman -S ttf-firacode-nerd 
+
+pacman -S neovim  
+
+pacman -S neovim-web-devicons-git  
+
+pacman -S alacritty  
+
+
 I wanted to have very few dependencies in my configuration, which is why I downloaded two plugins.
 
 [lukas-reineke/indent-blankline.nvim](https://github.com/lukas-reineke/indent-blankline.nvim) 
 
 
 [terrortylor/nvim-comment](https://github.com/terrortylor/nvim-comment)
+
+
+[neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig)
+
+
+[ibhagwan/fzf-lua](https://github.com/ibhagwan/fzf-lua)
+
+
 
 
   

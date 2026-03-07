@@ -3,25 +3,24 @@
 #include <X11/Xlib.h>
 
 
-
-
 #include <vte-2.91-gtk4/vte/vte.h>
-#include <adwaita.h>
 #include <glib/gprintf.h>
 #include <gtk-4.0/gdk/gdk.h>
 
-
 GtkWidget *window, *terminal;
-AdwDialog *dialog;
-AdwAlertDialog *Alertdialog;
+GtkAlertDialog *Alertdialog;
 
 GPid child_pid = 0;
 
-const bool ALT_F4 = false;  // true very special ???
+
+const bool ALT_F4 = true;
 
 
-#define WORKPGM		"nvim"
-#define WORKENV		"/usr/bin"
+#define WORKPGM		"Ptest"
+#define WORKENV		"/home/soleil/Zrust/libtui"
+
+// vte4 0.82.3-1
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -29,7 +28,7 @@ const bool ALT_F4 = false;  // true very special ???
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 constexpr unsigned long long int strswitch(const char* c_name, unsigned long long int l_hash = 0)
 {
-    /// string to int for switch
+	/// string to int for switch
 	return (*c_name == 0) ? l_hash : 101 * strswitch(c_name + 1) + *c_name;
 }
 
@@ -45,7 +44,7 @@ bool ctrlPgm(std::string v_TEXT)
 	std::filesystem::path p(v_TEXT.c_str());
 				switch(strswitch(p.stem().c_str()))
 					{
-						case  strswitch("nvim")		: b_pgm =TRUE;		break;
+						case  strswitch("Ptest")		: b_pgm =TRUE;		break;
 				}
 	return b_pgm;
 }
@@ -53,6 +52,7 @@ bool ctrlPgm(std::string v_TEXT)
 /// -----------------------------------------------------------------------------
 ///  libvte function putting the terminal function active
 /// -----------------------------------------------------------------------------
+
 inline bool exists_File (const std::string& name) {
 	struct stat fileStat;
 	if(stat(name.c_str(),&fileStat) != 0 ) { printf("\nNot exist -> %s\n",name.c_str()); return false;} 	// is exist objet
@@ -80,10 +80,8 @@ inline bool isDir_File(const std::string& name) {
 /// -----------------------------------------------------------------------------
 void term_spawn_callback(VteTerminal *terminal, GPid pid, GError *error, gpointer user_data)
 {
-		child_pid = pid;
+	child_pid = pid;
 }
-
-
 
 /// -----------------------------------------------------------------------------
 /// possibility to change the number of columns and rows
@@ -95,6 +93,7 @@ void on_resize_window(GtkWidget *terminal, guint  _col, guint _row)
 	gtk_window_set_default_size(GTK_WINDOW(window),-1,-1);
     gtk_window_present(GTK_WINDOW(window));
 }
+
 
 /// -----------------------------------------------------------------------------
 /// possibility to change the name of the terminal
@@ -114,64 +113,45 @@ void on_title_changed(GtkWidget *terminal)
 ///-------------------------------------
 
 void close_window() {
-
-    gtk_window_destroy(GTK_WINDOW(window));
-
-
+	gtk_window_destroy(GTK_WINDOW(window));
 }
 
 
+gboolean dialog_cb (GObject *source_object, GAsyncResult *res, gpointer user_data) {
 
-gboolean dialog_cb (AdwAlertDialog *dialog,  GAsyncResult   *result,  GtkWidget   *self)
-{
-  const char *response = adw_alert_dialog_choose_finish (dialog, result);
 
-    if (g_str_equal(response, "no"))
+        GtkAlertDialog *dialog = GTK_ALERT_DIALOG (source_object);
+	    GError *err = NULL;
+	    int button= gtk_alert_dialog_choose_finish (GTK_ALERT_DIALOG(dialog), res, &err);
 
-    {
-       // g_print("no\n");
-       return TRUE;
-    }
 
-    if (g_str_equal(response, "yes"))
+	    if (button == 0)
 
-    {
-        gtk_window_destroy(GTK_WINDOW(self));
-    }
-    return FALSE;
+	    {
+		    gtk_window_destroy(GTK_WINDOW(window));
+	    }
+
+
+	    if (button == 1)
+
+	    {
+		    gtk_window_present (GTK_WINDOW(window));
+
+		    return TRUE;
+	    }
+
+	return FALSE;
 }
 
 
 static void showAlert_cb()
 {
 
-    if  ( ALT_F4 == true) {
+    gtk_alert_dialog_choose (GTK_ALERT_DIALOG(Alertdialog), GTK_WINDOW(window),
+						NULL, (GAsyncReadyCallback) dialog_cb, NULL);
 
-        dialog = adw_alert_dialog_new ("confirm destroy Application", NULL);
-
-
-	    adw_alert_dialog_set_body (ADW_ALERT_DIALOG (dialog), "Please be careful");
-
-
-        adw_alert_dialog_add_responses (ADW_ALERT_DIALOG (dialog),
-                                      "yes",   "_YES",
-                                      "no",    "_NO",
-                                      NULL);
-
-
-        Alertdialog = ADW_ALERT_DIALOG (dialog);
-        adw_alert_dialog_choose (Alertdialog, GTK_WIDGET (window),
-                               NULL, (GAsyncReadyCallback) dialog_cb, window);
-
-	    adw_alert_dialog_set_default_response(  Alertdialog, "no");
-
-
-        adw_dialog_present (dialog, window);
-
-    }
-
-    gtk_window_present (GTK_WINDOW(window));
-    g_signal_connect(window,"close-request", G_CALLBACK (showAlert_cb), window);
+	gtk_window_present (GTK_WINDOW(window));
+	g_signal_connect(window,"close-request", G_CALLBACK (showAlert_cb), NULL);
 
 }
 /// -----------------------------------------------------------------------------
@@ -192,69 +172,64 @@ void	init_Terminal()
 	/// confortable and extend numbers columns and rows
 	// HELIX
 
-    unsigned int COL=	127; // 120 cols  src  5 colonnes reservées
-    unsigned int ROW =	46;  // 42  lines src  3 lines réservées pour neovim
+    unsigned int COL=	126; // 120 cols  src
+    unsigned int ROW =	40;  // 38  lines src
 
 
     //determines the maximum size for screens
     Display* d = XOpenDisplay(NULL);
     gint  s = DefaultScreen(d);
     // obsolète
-    gint width  = DisplayWidth(d, s);
+    gint width  = DisplayWidth(d, s);;
     gint height = DisplayHeight(d, s);
 
-    // specifique xfce4  my screen 3840    = 1920 : 1080
 
-//printf(" width %d  height %d",  width , height);
-
-
-    if ( width <= 1600 && height <=1024 ) {	                    // ex: 13"... 15" font 10
+    if ( width <= 1600 && height >=1024 ) {                // ex: 13"... 15"
         g_sprintf(font_terminal,"%s  %s" , VTEFONT,"10");
         }
-    else if ( width <= 1920 && height <=1080 ) {                // ex: 17"... 32" font 12
-        g_sprintf(font_terminal,"%s  %s" , VTEFONT,"13");       // xfce4 arandr 3  big screen 14
-        }
-    else if ( width > 1920 && width < 2560  ) {                  //  ex: 2560 x1600 > 27"  font 13
+    else if ( width <= 1920 && height >=1080 ) {           // ex: 17"... 32"
         g_sprintf(font_terminal,"%s  %s" , VTEFONT,"13");
-     }
-    else if ( width >= 2560  ) {                                //  ex: 3840 x2160 > 32"  font 13
+        }
+    else if ( width > 1920 && width<= 2560  ) {            //  ex: 2560 x1600 > 27"  font 13
+        g_sprintf(font_terminal,"%s  %s" , VTEFONT,"13");
+    }
+    else if ( width > 2560  ) {                            //  ex: 3840 x2160 > 32"  font 14
         g_sprintf(font_terminal,"%s  %s" , VTEFONT,"13");
     }
 
 
-	//printf(" font_term  %s  %d\n",font_terminal, g_utf8_validate(font_terminal,-1,NULL));
+
 
 	// resize  title  font
 	VTE = VTE_TERMINAL (terminal);
 
-
 	vte_terminal_set_font (VTE,pango_font_description_from_string(font_terminal));	/// font use
 
-	vte_terminal_set_size (VTE, COL, ROW);											/// size du terminal
+	vte_terminal_set_size (VTE, COL, ROW);                          /// size du terminal
 
-	vte_terminal_set_scrollback_lines (VTE,0);		 								///	désactiver historique.
+	vte_terminal_set_scrollback_lines (VTE,0);                      ///désactiver historique.
 
-	vte_terminal_set_scroll_on_output(VTE,FALSE);									/// pas de défilement
+	vte_terminal_set_scroll_on_output(VTE,FALSE);                   /// pas de défilement
 
-	vte_terminal_set_scroll_on_keystroke(VTE,FALSE);								/// pas de défilement
+	vte_terminal_set_scroll_on_keystroke(VTE,FALSE);                /// pas de défilement
 
-	vte_terminal_set_mouse_autohide(VTE, TRUE);										/// hiden  mouse  keyboard Actif
+	vte_terminal_set_mouse_autohide(VTE, TRUE);                     /// hiden  mouse  keyboard Actif
 
-	vte_terminal_set_cursor_blink_mode(VTE, VTE_CURSOR_BLINK_ON);					/// cursor blink on
+	vte_terminal_set_cursor_blink_mode(VTE, VTE_CURSOR_BLINK_ON);   /// cursor blink on
 
-	vte_terminal_set_cursor_shape(VTE,VTE_CURSOR_SHAPE_BLOCK);						/// define cursor 'block'
+	vte_terminal_set_cursor_shape(VTE,VTE_CURSOR_SHAPE_BLOCK);      /// define cursor 'block'
 
 }
 
 int main (int   argc,   char *argv[])  {
 
 
-
 	std::setlocale(LC_ALL, "fr_FR.utf8");
 
-    if (argc != 3) return EXIT_FAILURE;
+    //if (argc != 3) return EXIT_FAILURE;
 
     if ( FALSE == ctrlPgm(WORKPGM))		return EXIT_FAILURE;	// contrôle file exist helix
+
 
     /// -----------------------------------------------------------------------------
     /// -----------------------------------------------------------------------------
@@ -270,10 +245,11 @@ int main (int   argc,   char *argv[])  {
 
 
 
-	gchar *Title  = (char*) malloc (200);
-	g_sprintf(Title,"Project: %s",(gchar*) argv[1]); // PROJECT
 
-	gchar *wrkdir = (gchar*) argv[2];         // lib work
+	gchar *Title  = (char*) malloc (200);
+	g_sprintf(Title,"Project: %s",(gchar*) WORKPGM); // PROJECT
+	gchar *wrkdir  = (char*) malloc (200);
+	g_sprintf(wrkdir,"%s",(gchar*) WORKENV); // DIR
 
 /// ----------------------------------------------------
     // Définir le PATH (ajoute ton chemin au PATH existant)
@@ -284,49 +260,46 @@ int main (int   argc,   char *argv[])  {
     char *envp[] = {
         new_path,  // Ajoute ton chemin au PATH
         (gchar*)"TERM=xterm-256color",  // Exemple d'autre variable
-		NULL,
+		NULL
     };
     /// ----------------------------------------------------
 
 
-    gchar *pgm_1[]  = {(gchar*)WORKPGM ,(gchar*)"-w",NULL};    // hx
+    gchar *pgm_1[]  = {(gchar*)WORKPGM ,NULL};    // hx
     gchar ** command  = pgm_1;
 
+//==============================================================================================
+//==============================================================================================
+	gtk_init ();
+	window = gtk_window_new ();
 
-	adw_init ();
-    window = gtk_window_new ();
-
-
+  gtk_window_set_gravity (GTK_WINDOW(window), GTK_WINDOW_GRAVITY_TOP_LEFT);
 
 	gtk_window_set_title(GTK_WINDOW(window),Title);
 
 	gtk_window_set_resizable (GTK_WINDOW(window),TRUE);
 
 	gtk_window_set_modal(GTK_WINDOW(window),TRUE);
-	
+
 	gtk_widget_set_valign(window,GTK_ALIGN_START);
 
-    if (ALT_F4 == true )
-        gtk_window_set_deletable (GTK_WINDOW(window),true);
-    else
-        gtk_window_set_deletable (GTK_WINDOW(window),false);
+    if (ALT_F4 == true ) gtk_window_set_deletable (GTK_WINDOW(window),true);
+    else gtk_window_set_deletable (GTK_WINDOW(window),false);
 
 
 
-
-    // specific initialization of the terminal
-    terminal = vte_terminal_new();
+	// specific initialization of the terminal
+	terminal = vte_terminal_new();
 	init_Terminal();
 
-    //vte_terminal_spawn_async(
+
 	vte_terminal_spawn_async(
 		VTE_TERMINAL(terminal), //VteTerminal *terminal
 		VTE_PTY_DEFAULT, // VtePtyFlags pty_flags,
 
-		wrkdir,			// const char *working_directory PROJECT ex; $home/myproject/src-zig
-		command,		// command    call pgm and parm
-
-		envp,			// environment
+		wrkdir ,		// const char *working_directory PROJECT
+		command ,		// command    call pgm and parm
+		envp ,			// environment
 		(GSpawnFlags)(G_SPAWN_SEARCH_PATH |G_SPAWN_FILE_AND_ARGV_ZERO),		// spawn flags
 		NULL,			// GSpawnChildSetupFunc child_setup,
 		NULL,			// gpointer child_setup_data,
@@ -339,21 +312,31 @@ int main (int   argc,   char *argv[])  {
 		NULL
     );
 
-    gtk_window_set_child(GTK_WINDOW(window), terminal);
+	gtk_window_set_child(GTK_WINDOW(window), terminal);
+
+	Alertdialog = gtk_alert_dialog_new("confirm destroy Application");
+	const char* buttons[] = {"YES","NO",NULL};
+	gtk_alert_dialog_set_detail (GTK_ALERT_DIALOG(Alertdialog), "Please be careful");
+	gtk_alert_dialog_set_buttons (GTK_ALERT_DIALOG(Alertdialog), buttons);
+	gtk_alert_dialog_set_default_button ( GTK_ALERT_DIALOG(Alertdialog), 1);
+    gtk_alert_dialog_set_modal(GTK_ALERT_DIALOG(Alertdialog),TRUE);
 
 
     g_signal_connect(window,"close-request", G_CALLBACK (showAlert_cb), NULL);
-    g_signal_connect(terminal,"child-exited", G_CALLBACK (close_window), NULL);
-    g_signal_connect(terminal,"resize-window", G_CALLBACK(on_resize_window),NULL);
+	g_signal_connect(terminal,"child-exited", G_CALLBACK (close_window), NULL);
+	g_signal_connect(terminal, "resize-window", G_CALLBACK(on_resize_window),NULL);
 	g_signal_connect(terminal, "window-title-changed", G_CALLBACK(on_title_changed), NULL);
 
 
-    gtk_window_present (GTK_WINDOW (window));
-
-    while (g_list_model_get_n_items (gtk_window_get_toplevels ()) > 0)
-    g_main_context_iteration (NULL, TRUE);
 
 
 
-    return EXIT_SUCCESS;
+	gtk_window_present (GTK_WINDOW(window));
+
+	while (g_list_model_get_n_items (gtk_window_get_toplevels ()) > 0)
+		g_main_context_iteration (NULL, TRUE);
+
+
+
+	return EXIT_SUCCESS;
 }

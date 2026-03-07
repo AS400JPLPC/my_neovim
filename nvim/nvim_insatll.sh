@@ -16,6 +16,7 @@ if [ -d "$PLUGINS_DIR" ]; then
 fi
 mkdir -p "$PLUGINS_DIR"
 
+
 # 2. Extraction des plugins depuis les archives
 echo "Extraction des plugins..."
 if [ -f "$ORIGINE_DIR/ibl.tar.gz" ]; then
@@ -29,6 +30,21 @@ if [ -f "$ORIGINE_DIR/nvim-comment.tar.gz" ]; then
 else
     echo "⚠️ Fichier $ORIGINE_DIR/nvim-comment.tar.gz introuvable."
 fi
+
+if [ -f "$ORIGINE_DIR/nvim-lspconfig.tar.gz" ]; then
+    tar -xzf "$ORIGINE_DIR/nvim-lspconfig.tar.gz" -C "$PLUGINS_DIR"
+else
+    echo "⚠️ Fichier $ORIGINE_DIR/nvim-lspconfig.tar.gz introuvable."
+fi
+
+
+if [ -f "$ORIGINE_DIR/fzf-lua.tar.gz" ]; then
+    tar -xzf "$ORIGINE_DIR/fzf-lua.tar.gz" -C "$PLUGINS_DIR"
+else
+    echo "⚠️ Fichier $ORIGINE_DIR/fzf-lua.tar.gz introuvable."
+fi
+
+
 
 # 3. Création des dossiers de configuration Neovim
 echo "Configuration des dossiers Neovim..."
@@ -54,5 +70,26 @@ if [ -d "$PLUGINS_DIR/nvim-comment" ]; then
 else
     echo "⚠️ Dossier nvim-comment introuvable."
 fi
+
+
+if [ -d "$PLUGINS_DIR/nvim-lspconfig" ]; then
+    cp -r "$PLUGINS_DIR/nvim-lspconfig" "$NVIM_PLUGINS_DIR/"
+else
+    echo "⚠️ Dossier nvim-lspconfig introuvable."
+fi
+
+
+if [ -d "$PLUGINS_DIR/fzf-lua" ]; then
+    cp -r "$PLUGINS_DIR/fzf-lua" "$NVIM_PLUGINS_DIR/"
+else
+    echo "⚠️ Dossier fzf-lua introuvable."
+fi
+
+cp ~/GIT/my_neovim/nvim/init.lua   ~/.config/nvim/
+cp ~/GIT/my_neovim/nvim/nvim_sav.sh  ~/.config/nvim/
+cp ~/GIT/my_neovim/nvim/nvim_insatll.sh  ~/.config/nvim/
+cp ~/GIT/my_neovim/nvim/Neovim.png  ~/.config/nvim/
+cp ~/GIT/my_neovim/nvim/Tree.png  ~/.config/nvim/
+cp ~/GIT/my_neovim/nvim/fonction.odt  ~/.config/nvim/
 
 echo "✅ Installation terminée."

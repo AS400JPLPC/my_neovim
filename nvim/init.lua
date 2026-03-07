@@ -1,16 +1,19 @@
 -- Options de base 
 -- ~/.config/nvim/init.lua (version Jean-Pierre Laroche, 2026)
 --.~/ with Mistral AI, which taught me a great deal
+-- Configuration de base pour ntree
 
 
 -- 1. Force l'encodage UTF-8 pour les fichiers et le terminal
 vim.opt.encoding = 'utf-8'        -- Encodage interne de Neovim
 vim.opt.fileencoding = 'utf-8'    -- Encodage des fichiers ouverts/sauvegardés
 
+
 -- Configuration de base pour Neovim (120x45)
 vim.opt.number = true          -- Affiche les numéros de ligne (sauf dans le terminal)
 vim.opt.colorcolumn = "120"    -- Ligne verticale à 120 caractères (votre standard)
-vim.opt.termguicolors = true   -- Pour les couleurs VTE 
+vim.opt.termguicolors = true     -- Active les couleurs 24-bit (plus intenses)
+
 
 -- Utilise des VRAIES tabulations (\t) et non des espaces
 vim.opt.tabstop = 4          -- Largeur d'une tabulation (affichage)
@@ -18,7 +21,6 @@ vim.opt.shiftwidth = 4       -- Largeur de l'indentation (>>, <<)
 vim.opt.expandtab = false    -- Désactive la conversion des \t en espaces
 vim.opt.softtabstop = 0      -- Désactive (évite les mélanges)
 vim.opt.smarttab = true      -- Comportement intelligent des tabulations
-
 
 -- Police (Source Code Pro, comme dans vos mémos)
 vim.opt.guifont = "Fira Code Regular:h13"  -- Ajustez la taille (h12, h13, etc.) selon vos besoins
@@ -50,7 +52,13 @@ vim.opt.timeoutlen = 500  -- Délai pour les séquences de touches (ex: <Esc>+O)
 -- Surligner la ligne du curseur
 vim.opt.cursorline = true
 
+-- 2. Désactive l'historique de less
+vim.env.LESSHISTFILE = "-"
 
+-- 2. Configuration du dossier temporaire (unique par instance)
+local tempdir = vim.fn.expand("~/.cache/nvim/tmp/tmp_" .. vim.fn.getpid())
+vim.env.TMPDIR = tempdir
+vim.fn.mkdir(tempdir, "p")  -- Crée le dossier s'il n'existe pas
 
 
 
@@ -63,6 +71,9 @@ for i = 1, 12 do
   if i ~= 2 and i ~= 5 and i ~= 7 and i ~= 12 then  -- Garde F2, F5 et F12
     vim.keymap.set({'n', 'i', 'v'}, '<F' .. i .. '>', '<Nop>')
   end
+  
+  
+  
 end
 
 -- Autorise uniquement les commandes de base
@@ -264,6 +275,7 @@ function Statusline.active()
     local padding = string.rep(" ", max_width - #filename - #position - #smode - #modified -30)
 -- change color for insert
 vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235]])
+
 if (smode == "i")  then vim.cmd([[highlight CursorLine guibg=#00005f ctermbg=17 ]]) end
 
     return string.format("[%s]%s position:%s    :mode:%s    modifier:%s ", filename, padding, position, smode, modified)
@@ -281,6 +293,8 @@ vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
     callback = function()
         vim.opt_local.statusline = "%!v:lua.Statusline.active()"
     end,
+    
+    
 })
 
 vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
@@ -815,7 +829,7 @@ vim.keymap.set('n', '<A-h>', vim.lsp.buf.hover, { desc = "Afficher l'aide (hover
 
 vim.keymap.set({'n', 'i'}, '<A-m>', '<Esc>%', { desc = "Aller à la parenthèse correspondante" })  -- `match_brackets`
 
-vim.keymap.set('n', '<A-q>', ':qa!<CR>', { desc = "quit full hard no backup" })
+vim.keymap.set({'n','t'}, '<A-q>', ':qa!<CR>', { desc = "quit full hard no backup" })
 
 
 vim.keymap.set('n', '<A-s>', '/', { desc = "Search" })  -- `query search`
@@ -927,11 +941,6 @@ vim.keymap.set('n', '<A-r>', search_word_interactive, { desc = "Rechercher un mo
 
 
 
-
-
-
-
-
 --______________________________________________________________
 -- Raccourcis en mode NORMAL ( standard keyboard )
 
@@ -948,6 +957,8 @@ vim.keymap.set({'n','i', 'v', 's', 'x'}, '<Esc>', function()
     if vim.fn.mode() == 'i' then vim.cmd('stopinsert') end
     vim.cmd([[ execute "normal! \<ESC>" ]])
 end, { silent = true, noremap = true }) -- Réinitialise <Esc> pour un retour immédiat en mode normal
+
+
 
 vim.keymap.set('n', '<Ins>', 'i', { desc = "mode insert" })  -- `mode Insert`
 vim.keymap.set('n', '<Del>', 'x', { desc = "Supprimer le caractère sous le curseur" })  -- `delete_char_forward`
@@ -966,33 +977,108 @@ vim.keymap.set('n', '<End>', 'g_', { desc = "Aller à la fin de la ligne" })    
 
 
 
-
-
 --______________________________________________________________
--- Fermer le buffer courant et revenir sur ntree à utiliser avec précaution
-vim.keymap.set({'n','v'}, '<C-e>', function()
-  vim.cmd('only')  -- Ne garder qu'une seule fenêtre
-  vim.cmd('bd')    -- Fermer le buffer courant (sans vérification)
-  vim.cmd('Ntree') -- Ouvrir netrw dans la fenêtre courante
-  print(" ")
-end, { desc = "Fermer le buffer et revenir sur l'explorateur de fichiers" })
-
-
+-- browser de source ... et visualisation (Preview) 
 --______________________________________________________________
--- goto ligne       ex: Ligne:235
--- attention en mode 'v' la selection vas ce faire de l'emplacement du cursor jusqu'au n° deligne choisie
--- por les mode 'n','i' goto ligne
-vim.keymap.set({'n', 'i','v'}, '<C-g>', function()
-  vim.ui.input({
-    prompt = "Ligne: ",
-  }, function(line)
-    if line and tonumber(line) then
-      vim.cmd(':' .. line)
-    else
-      print("Saisie invalide (attendu: un numéro de ligne)")
+-- Explorateur de fichiers filtré pour Rust/C/Zig (nécessite fzf-lua)
+-- Installation : git clone https://github.com/ibhagwan/fzf-lua ~/.config/nvim/pack/plugins/start/fzf-lua
+-- Installation pacman -S bat 
+
+-- Configuration pour fzf-lua (layout vertical)
+-- Redessine fzf-lua lors du redimensionnement de la fenêtre
+
+-- Configuration complète de fzf-lua
+require("fzf-lua").setup({
+  -- Options globales pour fzf-lua
+  winopts = {
+    height = 1.0,            -- Hauteur totale
+    width = 1.0,             -- Largeur
+    row = 0.1,               -- Position verticale (10% du haut)
+    col = 0.1,               -- Position horizontale (10% de la gauche)
+    border = "sharp",        -- Style de bordure
+    preview = {
+      vertical = "down:60%", -- Aperçu en bas (60%)
+      hidden = false,        -- Affiche les fichiers cachés
+    },
+  },
+  files = {
+    cmd = "fd --type f --hidden --exclude .git --exclude target '\\.(rs|sh|c|cpp)$'",
+    prompt = ' Fichiers> ',
+    header = "Explorer| ENTREE: ouvrir | ESC: quitter",
+    previewer = "bat",
+    git_icons = true,
+  },
+  oldfiles = {
+    cmd = "fd --type f --hidden --exclude .git --exclude target '\\.(rs|sh|c|cpp)$'",
+    prompt = ' Historique> ',
+    header = "Historique| ENTREE: ouvrir | ESC: quitter",
+    previewer = "bat",
+    git_icons = true,
+  },
+})
+
+
+
+--- Vérifie si une fenêtre flottante est ouverte
+---@return boolean
+local function is_float_open()
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    local ok, config = pcall(vim.api.nvim_win_get_config, win)
+    if ok and config.relative ~= "" then  -- "" signifie que ce n'est pas une float
+      return true
     end
-  end)
-end, { desc = "Aller à la ligne" })
+  end
+  return false
+end
+
+-- Mapping pour <C-e> (nettoyage + ouverture)
+vim.keymap.set({'n', 'v','t'}, '<C-e>', function()
+	if is_float_open() then return end
+  vim.cmd('only | bd!')  -- Nettoie les fenêtres/buffers
+
+  require("fzf-lua").files()
+end, { desc = "Explorateur vertical (fzf-lua)" })
+
+
+
+vim.keymap.set({'n', 'v','t'}, '<C-f>', function()
+	if is_float_open() then return end
+  vim.cmd('only | bd!')  -- Nettoie les fenêtres/buffers
+
+  require("fzf-lua").oldfiles()
+end, { desc = "Explorateur vertical (fzf-lua)" })
+
+
+
+-- Démarrage automatique (optionnel)
+vim.api.nvim_create_autocmd('VimEnter', {
+  pattern = '*',
+  once = true,
+  callback = function()
+    if vim.fn.argc() == 0 then
+      vim.defer_fn(function()
+        vim.cmd('only | bd!')
+        require("fzf-lua").files()
+      end, 10)
+    end
+  end,
+})
+
+
+--__________________________________
+--solution sytem de base 
+--__________________________________
+
+--vim.keymap.set({'n','v'}, '<C-e>', function()
+--  vim.cmd('only')  -- Ne garder qu'une seule fenêtre
+--  vim.cmd('bd')    -- Fermer le buffer courant (sans vérification)
+--  vim.cmd('Ntree') -- Ouvrir netrw dans la fenêtre courante
+--  print(" ")
+--end, { desc = "Fermer le buffer et revenir sur l'explorateur de fichiers" })
+--_____________________________________________________________________________
+--_____________________________________________________________________________
+
+
 
 
 --______________________________________________________________
@@ -1061,6 +1147,54 @@ end, { desc = "Sauvegarder" })
 -- https://www.ditig.com/256-colors-cheat-sheet
 
 
+--________________________________________________
+-- restaure les couleurs et la syntax
+--________________________________________________ 
+
+vim.api.nvim_create_autocmd("VimResized", {
+  pattern = "*",
+  callback = function()
+    vim.cmd("hi clear | syntax reset | redraw!")
+  end,
+    callback = function()
+			vim.cmd([[
+			highlight Comment guifg=#af875f ctermfg=137 gui=none
+			highlight String guifg=#00af00 ctermfg=34 gui=none
+			highlight Number guifg=#ffaf00 ctermfg=214 gui=none
+			highlight Keyword guifg=#ff8700 ctermfg=208 gui=none
+			highlight Function guifg=#51afef ctermfg=39 gui=none
+			highlight Type guifg=#d7d700 ctermfg=184 gui=none
+			highlight Identifier guifg=#d75fff ctermfg=170 gui=none
+			highlight Boolean guifg=#87875f ctermfg=101 gui=none
+			highlight Error guifg=#ff0000 ctermfg=196 gui=none
+			highlight NonText guifg=#461613 gui=none
+			highlight Constant guifg=#87af5f ctermfg=107 guibg=none
+
+
+			highlight CursorLine guibg=#262626 ctermbg=235
+			highlight CursorColumn guibg=#262626 ctermbg=235
+			set cursorcolumn
+
+			highlight Cursor guifg=NONE ctermfg=NONE guibg=NONE ctermbg=NONE gui=reverse cterm=reverse
+
+			set guicursor=n-v-c:block-blinkon300-blinkoff300
+			set guicursor+=i-ci-ve:block-blinkon300-blinkoff300
+			set guicursor+=r-cr:hor20,o:hor20
+
+
+			highlight statusline guibg=#000000 guifg=#ff0000 gui=none
+
+			highlight DiagnosticError guifg=#ff0000 guibg=NONE ctermfg=196 gui=bold
+			highlight DiagnosticWarn guifg=#ffaf00 guibg=NONE ctermfg=214 gui=bold
+			highlight DiagnosticInfo guifg=#51afef guibg=NONE ctermfg=39 gui=bold
+			highlight DiagnosticHint guifg=#87af5f guibg=NONE ctermfg=107 gui=bold
+
+		]])
+  end,
+  
+})
+
+
 vim.cmd([[
   highlight Comment guifg=#af875f ctermfg=137 gui=none
   highlight String guifg=#00af00 ctermfg=34 gui=none
@@ -1094,5 +1228,20 @@ vim.cmd([[
   highlight DiagnosticHint guifg=#87af5f guibg=NONE ctermfg=107 gui=bold
 
 ]])
---   set guicursor+=i-ci-ve:ver25
 
+--   set guicursor+=i-ci-ve:ver25
+--_______________________________________
+--Élément,Couleur (guifg),Description
+--_______________________________________
+
+--Comment,#af875f (orange),Commentaires dans le code.
+--String,#00af00 (vert),Chaînes de caractères.
+--Number,#ffaf00 (orange clair),Nombres.
+--Keyword,#ff8700 (orange foncé),Mots-clés (ex: if, for).
+--Function,#51afef (bleu clair),Fonctions.
+--Type,#d7d700 (jaune),Types (ex: int, struct).
+--Identifier,#d75fff (violet),Identifiants (noms de variables).
+--Boolean,#87875f (vert foncé),Valeurs booléennes (true, false).
+--Error,#ff0000 (rouge),Erreurs.
+--NonText,#461613 (marron),Caractères non-textuels.
+--Constant,#87af5f (vert clair),Constantes.

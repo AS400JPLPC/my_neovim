@@ -1,0 +1,35 @@
+[env]
+WINIT_X11_SCALE_FACTOR = "1.0"
+
+[window]
+dimensions = { columns = 127, lines = 46 }    # 120 caractères et 44 lignes
+
+dynamic_title = true
+
+decorations = "Full"
+
+opacity = 1.0
+
+dynamic_padding = true
+
+[scrolling] 
+history  = 0
+multiplier = 0
+
+
+[font]
+normal =  { family = "Fira Code", style = "Regular" }
+size = 13
+
+
+
+[keyboard]
+# Ferme la fenêtre avec Alt+F4 (comportement standard)
+bindings = [
+  { key = "V", mods = "Control", action = "PasteSelection" },
+  { key = "C", mods = "Control", action = "CopySelection" },
+]
+
+#[colors.primary]
+#background = "#444444"
+#foreground = "#dddddd"
