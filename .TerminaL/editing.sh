@@ -1,0 +1,100 @@
+#!/bin/sh
+fcRouge='\033[31m'
+fcJaune='\033[33;1m'
+fcCyan='\033[36m'
+fcGreen='\033[32m'
+fcBleu='\033[34m'
+fcNoir='\033[0;0m'
+
+faGras='\033[1m'
+
+# https://man.archlinux.org/man/enscript.1.en
+
+#=========================
+# function  menu
+#=========================
+
+f_cls() {
+reset > /dev/null
+	echo -en '\033[1;1H'
+	echo -en '\033]11;#000000\007'
+	echo -en '\033]10;#FFFFFF\007'
+}
+
+f_pause(){
+	echo -en '\033[0;0m'
+ 	echo -en $faStabilo$fcRouge'Press[Enter] key to continue'
+	tput civis 	# curseur invisible
+	read -s -n 1
+	echo -en '\033[0;0m'
+}
+
+
+f_readPos() {	#commande de positionnement	lines + coln + text
+	echo -en '\033[0;0m'
+	let lig=$1
+	let col=$2
+	let colR=$2+${#3}+1  # si on doit coller faire  $2+${#3}
+	echo -en '\033['$lig';'$col'f'$fdVert$faGras$fcBlanc$3
+	echo -en '\033[0;0m'
+	tput cnorm	# curseur visible
+ 	echo -en '\033['$lig';'$colR'f'$faGras$fcGreen
+	read
+	tput civis 	# curseur invisible
+	echo -en '\033[0;0m'
+}
+
+f_dsplyPos(){ #commande de positionnement	lines + coln + couleur + text
+	echo -en '\033[0;0m'
+	let lig=$1
+	let col=$2
+	echo -en '\033['$lig';'$col'f'$3$4
+
+}
+
+# resize
+printf '\e[8;'12';'80't'
+
+cd $1
+
+name=""
+
+PATH_FILE=""
+
+ok="N"
+
+while [ "$name" != "q" ]
+do
+
+f_cls
+
+	f_dsplyPos  2  20 $faGras$fcBleu '----------------------------------------'
+
+	f_dsplyPos  4  20 $faGras$fcGreen 'Path :'$1
+
+	f_dsplyPos  5  20 $faGras$fcRouge 'q -> exit'
+
+	f_dsplyPos  6  20 $faGras$fcBleu '----------------------------------------'
+
+
+	f_readPos   8  20 'Name source  :'; name=$REPLY;
+
+	if [ "$name" == "q" ] ; then
+		break;
+	fi
+
+	if [ "$name" == "" ] ; then
+		f_readPos 8 50  'erreur de saisie Enter'
+    else
+	    PATH_FILE=$1"/"$name
+        if test -f $PATH_FILE; then
+           nohup  mousepad --new-window $PATH_FILE  > /dev/null 2>&1 &
+            break;
+        else
+            f_readPos 8 50  'erreur  FICHIER INVALIDE'
+        fi
+    fi
+done
+
+tput cnorm
+exit 0
