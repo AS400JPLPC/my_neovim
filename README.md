@@ -158,7 +158,7 @@ pacman -S  greprip
 
 pacman -S  bat 
 
-pacman -S ttf-firacode-nerd 
+pacman -S ttf-fira-code 
 
 pacman -S ttf-firacode-nerd 
 
