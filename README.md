@@ -55,7 +55,7 @@ Function: “log” for traceability, or debugging
   
 "F5" display log  
   
-"7"  clear log    
+"F7"  clear log    
   
 "Alt-r"  Reference: I use “ripgrep,” which is normally included in your distro.
   
