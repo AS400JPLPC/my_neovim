@@ -180,13 +180,17 @@ I wanted to have very few dependencies in my configuration, which is why I downl
 [neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig)
 
 
-[ibhagwan/fzf-lua](https://github.com/ibhagwan/fzf-lua)
+[ibhagwan/fzf-lua](https://github.com/ibhagwan/fzf-lua)  
 
 
 
 
+<br/>
+  
+![2026-03-08_18-25-39_fzf](assset/2026-03-08_18-25-39_fzf.png)  
   
   
+
 
 
 ![2026-01-15_21-55-52_neovim_vte3](assset/2026-01-15_21-55-52_neovim_vte3.png)
