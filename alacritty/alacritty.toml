@@ -12,7 +12,10 @@ opacity = 1.0
 
 dynamic_padding = true
 
-[scrolling] 
+[selection]
+save_to_clipboard = true
+
+[scrolling]
 history  = 0
 multiplier = 0
 
@@ -22,14 +25,10 @@ normal =  { family = "Fira Code", style = "Regular" }
 size = 13
 
 
-
-[keyboard]
-# Ferme la fenêtre avec Alt+F4 (comportement standard)
-bindings = [
-  { key = "V", mods = "Control", action = "PasteSelection" },
-  { key = "C", mods = "Control", action = "CopySelection" },
-]
-
+[terminal]
+osc52 = "CopyPaste"
+ 
+ 
 #[colors.primary]
 #background = "#444444"
 #foreground = "#dddddd"
