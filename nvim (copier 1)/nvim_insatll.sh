@@ -1,14 +1,5 @@
 #!/bin/bash
-fdRouge='\033[41m'
-faStabilo='\033[7m'	# read préférez lui couleur fond & face
 
-f_pause(){
-	echo -en '\033[0;0m'
- 	echo -en $faStabilo$fcRouge'Press[Enter] key to continue'
-	tput civis 	# curseur invisible
-	read -s -n 1
-	echo -en '\033[0;0m'
-}
 # Script pour extraire et installer les plugins Neovim
 # Usage: ./extract_plugins
 
@@ -54,11 +45,6 @@ else
 fi
 
 
-if [ -f "$ORIGINE_DIR/nvim-web-devicons.tar.gz" ]; then
-    tar -xzf "$ORIGINE_DIR/nvim-web-devicons.tar.gz" -C "$PLUGINS_DIR"
-else
-    echo "⚠️ Fichier $ORIGINE_DIR/nvim-web-devicons.tar.gz introuvable."
-fi
 
 # 3. Création des dossiers de configuration Neovim
 echo "Configuration des dossiers Neovim..."
@@ -99,12 +85,6 @@ else
     echo "⚠️ Dossier fzf-lua introuvable."
 fi
 
-if [ -d "$PLUGINS_DIR/nvim-web-devicons" ]; then
-    cp -r "$PLUGINS_DIR/nvim-web-devicons" "$NVIM_PLUGINS_DIR/"
-else
-    echo "⚠️ Dossier nvim-web-devicons introuvable."
-fi
-
 cp ~/GIT/my_neovim/nvim/init.lua   ~/.config/nvim/
 cp ~/GIT/my_neovim/nvim/nvim_sav.sh  ~/.config/nvim/
 cp ~/GIT/my_neovim/nvim/nvim_insatll.sh  ~/.config/nvim/
@@ -113,4 +93,3 @@ cp ~/GIT/my_neovim/nvim/Tree.png  ~/.config/nvim/
 cp ~/GIT/my_neovim/nvim/fonction.odt  ~/.config/nvim/
 
 echo "✅ Installation terminée."
-f_pause

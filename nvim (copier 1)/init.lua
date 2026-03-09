@@ -132,35 +132,6 @@ vim.keymap.set('n', 'a', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 's', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 'd', '<Esc>')  -- `OFF`
 --*****************************************************************
---______________________________________________________________
--- les plugins   lspconfig et  FZF
---______________________________________________________________
-
-vim.cmd('packadd nvim-comment')
-require('nvim_comment').setup()
--- Mapping pour commenter un bloc en mode visuel
-vim.keymap.set('v', '<C-t>', ':CommentToggle<CR>', { desc = "Commenter le bloc" })
-
-
-
-
-local ibl = require("ibl")
-vim.cmd([[
-  highlight IblIndentChar guifg=#262626 ctermbg=235
-]])
-ibl.setup({
-    indent = {
-        char = "",           -- Aucun caractère pour les espaces
-        tab_char = "│",      -- Affiche les \t comme │
-        highlight = {"IblIndentChar"},
-    },
-    scope = { enabled = false },
-})
-
-
--- Charger nvim-web-devicons (version locale)
-require('nvim-web-devicons').setup()
-
 
 
 --============================================================
@@ -747,9 +718,32 @@ end, { desc = 'Réinitialiser diagnostics', silent = false })
 
 
 
---_______________________________________________________
--- caractères spéciaux
---_______________________________________________________
+--______________________________________________________________
+-- les plugins
+--______________________________________________________________
+
+vim.cmd('packadd nvim-comment')
+require('nvim_comment').setup()
+-- Mapping pour commenter un bloc en mode visuel
+vim.keymap.set('v', '<C-t>', ':CommentToggle<CR>', { desc = "Commenter le bloc" })
+
+
+
+
+local ibl = require("ibl")
+vim.cmd([[
+  highlight IblIndentChar guifg=#262626 ctermbg=235
+]])
+ibl.setup({
+    indent = {
+        char = "",           -- Aucun caractère pour les espaces
+        tab_char = "│",      -- Affiche les \t comme │
+        highlight = {"IblIndentChar"},
+    },
+    scope = { enabled = false },
+})
+
+
 -- Désactive l'affichage des caractères spéciaux
 vim.opt.list = false
 

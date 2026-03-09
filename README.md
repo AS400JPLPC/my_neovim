@@ -9,7 +9,7 @@ Support for the lsp for neovim <BR/>
 I did my best to use the basic keyboard keys, e.g., Del, Enter, Ins, etc. Similarly, I tried to stick to the traditional text editor keys, e.g., Ctrl-C, Ctrl-V. 
      
   
-
+When you download, you put a little star, it's free.
   
   
  <br/>
@@ -108,6 +108,9 @@ Translated with DeepL.com (free version)
 **2026-03-07 22:30**  udpate full,  After all the tests, reset “init.lua” and minimum plugin distribution, introduce “fzf,” pipe Neovim sessions, and set up interactive Neovim formatting.<BR/>
 **2026-03-07 22:30** test: VTE and alacritty 
 <BR/>
+<BR/>
+**2026-03-08 13:50** warning Arch  remove pacman  nvim-web-devicons  add pluggin nvim-tree/nvim-web-devicons
+<BR/>  
   
 <BR/>
 The F12 function has been unraveled, and shows you how to use the concept of dialogue for your errors.
@@ -136,7 +139,7 @@ alias rustfmt="$HOME/.cargo/bin/rustfmt"<BR/>
   
 **My configuration made with Mistral IA**
 
-a minimal configuration with 4 plugins, or I would have had to rewrite them, so I prefer to import them. optimized for Rust
+a minimal configuration with 5 plugins, or I would have had to rewrite them, so I prefer to import them. optimized for Rust
 with a VTE terminal 
   
 <BR/>
@@ -164,8 +167,6 @@ pacman -S ttf-firacode-nerd
 
 pacman -S neovim  
 
-pacman -S neovim-web-devicons-git  
-
 pacman -S alacritty  
 
 
@@ -182,6 +183,8 @@ I wanted to have very few dependencies in my configuration, which is why I downl
 
 [ibhagwan/fzf-lua](https://github.com/ibhagwan/fzf-lua)  
 
+
+[nvim-tree/nvim-web-devicons](https://github.com/nvim-tree/nvim-web-devicons.git)  
 
 
 
