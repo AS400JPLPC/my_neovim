@@ -107,6 +107,8 @@ fi
 
 cp ~/GIT/my_neovim/nvim/init.lua   ~/.config/nvim/
 cp ~/GIT/my_neovim/nvim/nvim_sav.sh  ~/.config/nvim/
+cp ~/GIT/my_neovim/nvim/get_plugins.sh  ~/.config/nvim/
+cp ~/GIT/my_neovim/nvim/update_plugins.sh  ~/.config/nvim/
 cp ~/GIT/my_neovim/nvim/nvim_insatll.sh  ~/.config/nvim/
 cp ~/GIT/my_neovim/nvim/Neovim.png  ~/.config/nvim/
 cp ~/GIT/my_neovim/nvim/Tree.png  ~/.config/nvim/

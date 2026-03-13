@@ -1,0 +1,4 @@
+# ~/.config/rust-analyzer/rust-analyzer.toml
+[rust-analyzer]
+cargo = { allFeatures = true }  # Active toutes les fonctionnalités cargo
+checkOnSave = { command = "clippy" }  # Exécute Clippy à l'enregistrement

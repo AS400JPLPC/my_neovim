@@ -109,9 +109,13 @@ Translated with DeepL.com (free version)
 **2026-03-07 22:30** test: VTE and alacritty 
 <BR/>
 <BR/>
-**2026-03-08 13:50** warning Arch  remove pacman  nvim-web-devicons  add pluggin nvim-tree/nvim-web-devicons
+**2026-03-08 15:00** warning Arch  neovim    NVIM v0.11.6  LuaJIT 2.1.1772619647<BR/>
+update color and  plugin ibl  and capabilities.workspace
 <BR/>  
-  
+<BR/> 
+<BR/>
+**2026-03-13 13:50** warning Arch  remove pacman  nvim-web-devicons  add pluggin nvim-tree/nvim-web-devicons
+<BR/>  
 <BR/>
 The F12 function has been unraveled, and shows you how to use the concept of dialogue for your errors.
 I could have unified the global control functions of the project, but I deliberately chose to keep both approaches.

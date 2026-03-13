@@ -1,0 +1,7 @@
+# Limite de longueur de ligne
+max-width = 120
+
+# Lints à activer/désactiver
+[lints]
+unused_imports = "warn"  # Avertit pour les imports inutilisés
+

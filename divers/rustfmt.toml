@@ -1,0 +1,10 @@
+max_width = 120          # Limite à 120 caractères par ligne
+fn_call_width = 120      # Largeur max pour les appels de fonction
+fn_params_layout = "Compressed"  # Paramètres de fonction sur une seule ligne
+hard_tabs = false        # Utilise des espaces au lieu de tabulations
+tab_spaces = 4           # 4 espaces par tabulation
+struct_lit_width = 120   # Largeur max pour les littéraux de struct
+[logs]
+level = "error"  # N'affiche que les erreurs (pas les warnings)
+
+

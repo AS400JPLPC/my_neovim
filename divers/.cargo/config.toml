@@ -1,0 +1,20 @@
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = "z"  # Optimise pour la taille
+lto = true       # Active Link Time Optimization
+strip = true     # Supprime les symboles de débogage
+panic = "abort"  # Désactive le défilement de la pile en cas de panique
+
+
+[build]
+rustflags = ["--deny=warnings"]
+
+[lints.clippy]
+pedantic = "warn"
+needless_return = "allow"
+
+[language-server.rust-analyzer]
+checkOnSave = { command = "clippy" }
+files = { exclude = ["**/target/*"] }

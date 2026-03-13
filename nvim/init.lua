@@ -60,8 +60,7 @@ local tempdir = vim.fn.expand("~/.cache/nvim/tmp/tmp_" .. vim.fn.getpid())
 vim.env.TMPDIR = tempdir
 vim.fn.mkdir(tempdir, "p")  -- Crée le dossier s'il n'existe pas
 
-
-
+--vim.opt.syntax = off 
 --=============================================
 -- maping base  key 
 --=============================================
@@ -87,6 +86,8 @@ local allowed_commands = {
   v = true,   -- mode visuel
   ["<Esc>"] = true, -- quitter le mode insertion/remplacement
 }
+--  y = true,   -- copier (yank)
+--  p = true,   -- coller (put)
 --  h = true, j =true, k = true, l = true, -- déplacements
 --  x = true,   -- sauvegarder et quitter
 --  ["/"] = true, -- recherche
@@ -132,36 +133,6 @@ vim.keymap.set('n', 'a', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 's', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 'd', '<Esc>')  -- `OFF`
 --*****************************************************************
---______________________________________________________________
--- les plugins   lspconfig et  FZF
---______________________________________________________________
-
-vim.cmd('packadd nvim-comment')
-require('nvim_comment').setup()
--- Mapping pour commenter un bloc en mode visuel
-vim.keymap.set('v', '<C-t>', ':CommentToggle<CR>', { desc = "Commenter le bloc" })
-
-
-
-
-local ibl = require("ibl")
-vim.cmd([[
-  highlight IblIndentChar guifg=#262626 ctermbg=235
-]])
-ibl.setup({
-    indent = {
-        char = "",           -- Aucun caractère pour les espaces
-        tab_char = "│",      -- Affiche les \t comme │
-        highlight = {"IblIndentChar"},
-    },
-    scope = { enabled = false },
-})
-
-
--- Charger nvim-web-devicons (version locale)
-require('nvim-web-devicons').setup()
-
-
 
 --============================================================
 -- Système de log unifié  (ex: log("⚙️ Bin Name:", bin_name))
@@ -391,8 +362,7 @@ local on_attach = function(client, bufnr)
   vim.keymap.set('n', 'gd', vim.lsp.buf.definition, { desc = "Aller à la définition" })
 
   
-  
-  -- Configuration des diagnostics (comme avant)
+  -- Configuration des diagnostics 
   vim.diagnostic.config({
     virtual_text = { prefix = "●", spacing = 4, source = "always" },
     signs = true,
@@ -438,9 +408,9 @@ capabilities.textDocument.completion.completionItem = {
   commitCharactersSupport = true,
   tagSupport = { valueSet = { 1 } },
   resolveSupport = { properties = { 'documentation', 'detail', 'additionalTextEdits' } },
-  workspace = {
-    didChangeWatchedFiles = { dynamicRegistration = true },
-  },
+}
+capabilities.workspace = {
+  didChangeWatchedFiles = { dynamicRegistration = true },
 }
 
 -- 4. Configuration rust-analyzer 
@@ -787,20 +757,32 @@ vim.cmd([[
 ]])
 
 
--- Convertit les espaces en tabulations à l'enregistrement
--- Remplace les espaces par des \t
+-- Fonction pour remplacer les espaces par des tabulations
+local function convert_spaces_to_tabs()
+  local spaces_to_replace = vim.opt.shiftwidth._value  -- Utilise la valeur de shiftwidth
+  local spaces_pattern = string.rep(" ", spaces_to_replace)
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+
+  for i, line in ipairs(lines) do
+    local new_line, count = line:gsub(spaces_pattern, "\t")
+    if count > 0 then
+      vim.api.nvim_buf_set_lines(0, i - 1, i, false, { new_line })
+    end
+  end
+end
+
+-- Déclenche cette fonction avant l'enregistrement
 vim.api.nvim_create_autocmd("BufWritePre", {
-  pattern = "*.rs",  -- Fichiers Rust/Zig
+  pattern = "*.rs",
   callback = function()
-    vim.cmd([[ retab! ]])
+    convert_spaces_to_tabs()
   end,
 })
 
 
+
 --______________________________________________________________
 --les commandes 
-
-
 
 vim.keymap.set('n', '<A-a>', function()
   local path = "/home/soleil/Zsnipset"
@@ -1128,7 +1110,7 @@ end, { desc = "Purge TOTALE (sauf buffer actuel)", silent = false })
 vim.keymap.set({'i','n'}, '<C-s>', function() 
 vim.cmd(':write!')
 if vim.fn.mode() == 'i' then vim.cmd('stopinsert') end
-
+  
 local src_name = vim.fn.expand('%:p')
 log("✅ sauvegarde" .. src_name)
 
@@ -1151,89 +1133,84 @@ end, { desc = "Sauvegarder" })
 -- constant   Dark Olive Green
 
 -- https://www.ditig.com/256-colors-cheat-sheet
-
-
 --________________________________________________
 -- restaure les couleurs et la syntax
 --________________________________________________ 
+--______________________________________________________________
+-- les plugins   lspconfig et  FZF sont traité én amont
+--______________________________________________________________
 
+vim.cmd('packadd nvim-comment')
+
+require('nvim_comment').setup()
+-- Mapping pour commenter un bloc en mode visuel
+vim.keymap.set('v', '<C-t>', ':CommentToggle<CR>', { desc = "Commenter le bloc" })
+
+-- Mapping tabulation
+local ibl = require("ibl")
+
+-- Charger nvim-web-devicons (version locale)
+require('nvim-web-devicons').setup()
+
+-- Configuration des couleurs (appelée une seule fois)
+local function setup_colors()
+  vim.cmd([[
+    highlight Normal guifg=#ffffff guibg=#1c1c1c cterm=NONE
+    highlight Comment guifg=#af875f ctermfg=137 guibg=NONE ctermbg=NONE
+    highlight String guifg=#00af00 ctermfg=34 guibg=NONE ctermbg=NONE
+    highlight Number guifg=#ffaf00 ctermfg=214 guibg=NONE ctermbg=NONE
+    highlight Keyword guifg=#ff8700 ctermfg=208 guibg=NONE ctermbg=NONE
+    highlight Function guifg=#51afef ctermfg=39 guibg=NONE ctermbg=NONE
+    highlight Type guifg=#d7d700 ctermfg=184 guibg=NONE ctermbg=NONE
+    highlight Identifier guifg=#d75fff ctermfg=170 guibg=NONE ctermbg=NONE
+    highlight Boolean guifg=#87875f ctermfg=101 guibg=NONE ctermbg=NONE
+    highlight Error guifg=#ff0000 ctermfg=196 guibg=NONE ctermbg=NONE
+    highlight Constant guifg=#87af5f ctermfg=107 guibg=NONE ctermbg=NONE
+    highlight PreProc guifg=#ba9cef ctermfg=147 guibg=NONE ctermbg=NONE
+    highlight CursorLine guibg=#262626 ctermbg=235 guifg=NONE ctermfg=NONE
+    highlight CursorColumn guibg=#262626 ctermbg=235 guifg=NONE ctermfg=NONE
+    set cursorcolumn
+    highlight Cursor guifg=NONE ctermfg=NONE guibg=NONE ctermbg=NONE gui=reverse cterm=reverse
+    set guicursor=n-v-c:block-blinkon300-blinkoff300
+    set guicursor+=i-ci-ve:block-blinkon300-blinkoff300
+    set guicursor+=r-cr:hor20,o:hor20
+    highlight statusline guibg=#000000 guifg=#ff0000 cterm=NONE
+    highlight DiagnosticError guifg=#ff0000 guibg=NONE ctermfg=196 ctermbg=NONE gui=bold
+    highlight DiagnosticWarn guifg=#ffaf00 guibg=NONE ctermfg=214 ctermbg=NONE gui=bold
+    highlight DiagnosticInfo guifg=#51afef guibg=NONE ctermfg=39 ctermbg=NONE gui=bold
+    highlight DiagnosticHint guifg=#87af5f guibg=NONE ctermfg=107 ctermbg=NONE gui=bold
+    highlight NonText guifg=#340d0d cterm=NONE guibg=NONE
+    highlight IblIndentChar guifg=#262626 ctermfg=235 guibg=NONE ctermbg=NONE
+  ]])
+end
+
+local function setup_ibl()
+  ibl.setup({
+    indent = {
+      char = "",           -- Aucun caractère pour les espaces
+      tab_char = "│",      -- Affiche les \t comme │
+      highlight = {"IblIndentChar"},
+    },
+    scope = { enabled = false },
+  })
+end
+
+-- Applique les couleurs et la configuration d'IBL au démarrage
+setup_colors()
+setup_ibl()
+
+-- Rafraîchit les couleurs et la syntaxe au redimensionnement
 vim.api.nvim_create_autocmd("VimResized", {
   pattern = "*",
   callback = function()
     vim.cmd("hi clear | syntax reset | redraw!")
+    vim.opt.syntax = "off"  -- Désactive la syntaxe si besoin
+    setup_colors()          -- Réapplique les couleurs
+    setup_ibl()             -- Réapplique les indentations
   end,
-    callback = function()
-			vim.cmd([[
-			highlight Comment guifg=#af875f ctermfg=137 gui=none
-			highlight String guifg=#00af00 ctermfg=34 gui=none
-			highlight Number guifg=#ffaf00 ctermfg=214 gui=none
-			highlight Keyword guifg=#ff8700 ctermfg=208 gui=none
-			highlight Function guifg=#51afef ctermfg=39 gui=none
-			highlight Type guifg=#d7d700 ctermfg=184 gui=none
-			highlight Identifier guifg=#d75fff ctermfg=170 gui=none
-			highlight Boolean guifg=#87875f ctermfg=101 gui=none
-			highlight Error guifg=#ff0000 ctermfg=196 gui=none
-			highlight NonText guifg=#461613 gui=none
-			highlight Constant guifg=#87af5f ctermfg=107 guibg=none
-
-
-			highlight CursorLine guibg=#262626 ctermbg=235
-			highlight CursorColumn guibg=#262626 ctermbg=235
-			set cursorcolumn
-
-			highlight Cursor guifg=NONE ctermfg=NONE guibg=NONE ctermbg=NONE gui=reverse cterm=reverse
-
-			set guicursor=n-v-c:block-blinkon300-blinkoff300
-			set guicursor+=i-ci-ve:block-blinkon300-blinkoff300
-			set guicursor+=r-cr:hor20,o:hor20
-
-
-			highlight statusline guibg=#000000 guifg=#ff0000 gui=none
-
-			highlight DiagnosticError guifg=#ff0000 guibg=NONE ctermfg=196 gui=bold
-			highlight DiagnosticWarn guifg=#ffaf00 guibg=NONE ctermfg=214 gui=bold
-			highlight DiagnosticInfo guifg=#51afef guibg=NONE ctermfg=39 gui=bold
-			highlight DiagnosticHint guifg=#87af5f guibg=NONE ctermfg=107 gui=bold
-
-		]])
-  end,
-  
 })
 
 
-vim.cmd([[
-  highlight Comment guifg=#af875f ctermfg=137 gui=none
-  highlight String guifg=#00af00 ctermfg=34 gui=none
-  highlight Number guifg=#ffaf00 ctermfg=214 gui=none
-  highlight Keyword guifg=#ff8700 ctermfg=208 gui=none
-  highlight Function guifg=#51afef ctermfg=39 gui=none
-  highlight Type guifg=#d7d700 ctermfg=184 gui=none
-  highlight Identifier guifg=#d75fff ctermfg=170 gui=none
-  highlight Boolean guifg=#87875f ctermfg=101 gui=none
-  highlight Error guifg=#ff0000 ctermfg=196 gui=none
-  highlight NonText guifg=#461613 gui=none
-  highlight Constant guifg=#87af5f ctermfg=107 guibg=none
-
-
-  highlight CursorLine guibg=#262626 ctermbg=235
-  highlight CursorColumn guibg=#262626 ctermbg=235
-  set cursorcolumn
-
-  highlight Cursor guifg=NONE ctermfg=NONE guibg=NONE ctermbg=NONE gui=reverse cterm=reverse
-
-  set guicursor=n-v-c:block-blinkon300-blinkoff300
-  set guicursor+=i-ci-ve:block-blinkon300-blinkoff300
-  set guicursor+=r-cr:hor20,o:hor20
-
-
-  highlight statusline guibg=#000000 guifg=#ff0000 gui=none
-
-  highlight DiagnosticError guifg=#ff0000 guibg=NONE ctermfg=196 gui=bold
-  highlight DiagnosticWarn guifg=#ffaf00 guibg=NONE ctermfg=214 gui=bold
-  highlight DiagnosticInfo guifg=#51afef guibg=NONE ctermfg=39 gui=bold
-  highlight DiagnosticHint guifg=#87af5f guibg=NONE ctermfg=107 gui=bold
-
-]])
 
 --   set guicursor+=i-ci-ve:ver25
 --_______________________________________

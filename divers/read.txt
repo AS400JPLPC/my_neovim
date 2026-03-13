@@ -1,0 +1,11 @@
+creat ~/.config/rust-analyzer
+
+worktest= libtui my lib for tui
+
+creat worktest example
+
+creat  ~/Zrust/libtui/clippy.toml
+
+creat  ~/Zrust/libtui/rustfmt.toml
+
+creat ~/Zrust/libtui/.cargo/config.toml
