@@ -123,7 +123,7 @@ update color and  plugin ibl  and capabilities.workspace
 <BR/> 
 <BR/>
 **2026-03-16 11:50** Improvements to the search function <A-r>
-
+**2026-03-16 18:00** ISorry, I accidentally missed <C-g> goto line: back in action 
 
 
 

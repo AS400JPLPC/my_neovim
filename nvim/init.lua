@@ -115,7 +115,7 @@ vim.keymap.set('n', ':',
 -- use keyboard  ex i = Ins , x = del..
 
 -- active for test 
-vim.keymap.del('n', ':')   -- ON
+--vim.keymap.del('n', ':')   -- ON
 
 
 
@@ -523,7 +523,8 @@ local function cargo_check_errors()
 
   vim.fn.setqflist(qf_list, 'r')
   if #qf_list > 0 then
-      vim.cmd('copen')
+  		vim.cmd('cclose') -- ferme la iste des erreur quickfix
+      vim.cmd('lclose') -- ferme la liste des erreu
       print(string.format("⚠️ %d erreur(s) détectée(s)", #qf_list))
   end
 
@@ -686,7 +687,8 @@ vim.keymap.set('n', '<F12>', function()
     if qf_list == 0 then
       log("✅ Build TEST réussi " .. bin_name)
       print("✅ Build TEST réussi")
-      vim.cmd('lclose')
+  		vim.cmd('cclose') -- ferme la iste des erreur quickfix
+      vim.cmd('lclose') -- ferme la liste des erreu
     else
      log(string.format("⚠️ %d problème(s)  ",  qf_list) .. bin_name)
       print(string.format("⚠️ %d problème(s) ", qf_list))
@@ -1066,7 +1068,18 @@ vim.api.nvim_create_autocmd('VimEnter', {
 --_____________________________________________________________________________
 
 
-
+-- goto ligne       ex: Ligne:235
+-- attention en mode 'v' la selection vas ce faire de l'emplacement du cursor jusqu'au n° deligne choisie
+-- por les mode 'n','i' goto ligne
+vim.keymap.set({'n', 'i','v'}, '<C-g>', function()
+  vim.ui.input({ prompt = "Ligne: ", }, function(line)
+    if line and tonumber(line) then
+      vim.cmd(':' .. line)
+    else
+      print("Saisie invalide (attendu: un numéro de ligne)")
+    end
+  end)
+end, { desc = "Aller à la ligne" })
 
 --______________________________________________________________
 -- CLEAR
@@ -1143,7 +1156,7 @@ vim.cmd('packadd nvim-comment')
 
 require('nvim_comment').setup()
 -- Mapping pour commenter un bloc en mode visuel
-vim.keymap.set('v', '<C-t>', ':CommentToggle<CR>', { desc = "Commenter le bloc" })
+vim.keymap.set({'n','v'}, '<C-t>', ':CommentToggle<CR>', { desc = "Commenter le bloc" })
 
 -- Mapping tabulation
 local ibl = require("ibl")
