@@ -133,7 +133,6 @@ vim.keymap.set('n', 'a', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 's', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 'd', '<Esc>')  -- `OFF`
 --*****************************************************************
-
 --============================================================
 -- Système de log unifié  (ex: log("⚙️ Bin Name:", bin_name))
 
@@ -340,7 +339,6 @@ vim.api.nvim_create_autocmd({"BufNewFile", "BufRead"}, {
     vim.opt_local.swapfile = false
   end,
 })
-
 
 -- 1. Fonction pour filtrer les notifications
 vim.notify = function(msg, level)
@@ -857,14 +855,13 @@ vim.keymap.set({'n', 'i', 'v'}, '<A-z>', function()
 end, { desc = "Recharger le buffer actuel", silent = false })
 
 
-
-
+-- 1. Fonction de recherche interactive
 local function search_word_interactive()
   vim.ui.input({
     prompt = "Mot à rechercher: ",
   }, function(word)
     if not word or word == "" then
-      vim.notify("Saisie invalide (attendu: un mot)", vim.log.levels.ERROR)
+      print("Saisie invalide (attendu: un mot)")
       return
     end
 
@@ -872,13 +869,15 @@ local function search_word_interactive()
     local cmd = string.format("rg --no-heading --line-number --column --word-regexp --color=never '%s' .", word)
     local output = vim.fn.system(cmd)
 
-    if vim.v.shell_error ~= 0 then
-      vim.notify("Erreur: " .. output, vim.log.levels.ERROR)
+    -- Vérifie si aucune occurrence n'est trouvée
+    if output == "" then
+      print("Aucune occurrence trouvée pour: " .. word)
       return
     end
 
-    if output == "" then
-      vim.notify("Aucune occurrence trouvée pour: " .. word, vim.log.levels.INFO)
+    -- Vérifie s'il y a une erreur
+    if vim.v.shell_error ~= 0 then
+      vim.notify("Erreur: " .. output, vim.log.levels.ERROR)
       return
     end
 
@@ -916,16 +915,16 @@ local function search_word_interactive()
     if #qf_list > 0 then
       vim.fn.setloclist(0, qf_list, 'r')
       vim.cmd('lopen')
-      vim.notify(string.format("⚠️ %d occurrence(s) trouvées", #qf_list), vim.log.levels.INFO)
+      vim.notify(string.format("⚠️ %d occurrence(s) trouvée(s)", #qf_list), vim.log.levels.INFO)
     else
-      vim.notify("Aucune occurrence dans le buffer actuel", vim.log.levels.INFO)
+      print("Aucune occurrence trouvée pour: " .. word .. " dans " .. current_file)
     end
   end)
 end
 
+
 -- Mapping pour lancer la recherche interactive
 vim.keymap.set('n', '<A-r>', search_word_interactive, { desc = "Rechercher un mot (interactif)" })
-
 
 
 
@@ -1179,8 +1178,8 @@ local function setup_colors()
     highlight DiagnosticWarn guifg=#ffaf00 guibg=NONE ctermfg=214 ctermbg=NONE gui=bold
     highlight DiagnosticInfo guifg=#51afef guibg=NONE ctermfg=39 ctermbg=NONE gui=bold
     highlight DiagnosticHint guifg=#87af5f guibg=NONE ctermfg=107 ctermbg=NONE gui=bold
-    highlight NonText guifg=#340d0d cterm=NONE guibg=NONE
-    highlight IblIndentChar guifg=#262626 ctermfg=235 guibg=NONE ctermbg=NONE
+    highlight NonText guifg=#5a0d0d cterm=NONE guibg=NONE
+    highlight IblIndentChar guifg=#3a3a3a ctermfg=237 guibg=NONE ctermbg=NONE
   ]])
 end
 
