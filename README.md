@@ -124,7 +124,10 @@ update color and  plugin ibl  and capabilities.workspace
 <BR/>
 **2026-03-16 11:50** Improvements to the search function <A-r>
 **2026-03-16 18:00** ISorry, I accidentally missed <C-g> goto line: back in action 
-
+<BR/>  
+<BR/> 
+<BR/>
+**2026-03-17 101:15** <F12> restructuring, with index deletion notification 
 
 
 

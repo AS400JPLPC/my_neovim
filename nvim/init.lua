@@ -158,6 +158,7 @@ vim.keymap.set('n', 'd', '<Esc>')  -- `OFF`
 local messages = {}
 
 -- Fonction pour formater une table de manière intelligente
+
 local function format_table(v)
   if type(v) ~= "table" then return tostring(v) end
 
@@ -340,12 +341,14 @@ vim.api.nvim_create_autocmd({"BufNewFile", "BufRead"}, {
   end,
 })
 
+local original_level = function(msg, level) end
 -- 1. Fonction pour filtrer les notifications
 vim.notify = function(msg, level)
   if level == vim.log.levels.ERROR and not msg:find("desugared expr") then
-    vim.notify(msg, level)  -- Affiche seulement les VRAIES erreurs
+    original_level(msg, level)  -- Affiche seulement les VRAIES erreurs
   end
 end
+
 
 -- 2. Fonction on_attach 
 local on_attach = function(client, bufnr)
@@ -522,10 +525,15 @@ local function cargo_check_errors()
   end
 
   vim.fn.setqflist(qf_list, 'r')
+ 
   if #qf_list > 0 then
-  		vim.cmd('cclose') -- ferme la iste des erreur quickfix
-      vim.cmd('lclose') -- ferme la liste des erreu
-      print(string.format("⚠️ %d erreur(s) détectée(s)", #qf_list))
+    vim.fn.setqflist(qf_list, 'r')
+    vim.cmd('copen')  -- Ouvre la quickfix list
+    print(string.format("⚠️ %d erreur(s) détectée(s)", #qf_list))
+  else
+    vim.cmd('cclose')  -- Ferme la quickfix list
+    vim.cmd('lclose')  -- Ferme la location list
+    print("✅ Aucune erreur détectée")
   end
 
 end
@@ -561,13 +569,14 @@ end, { desc = "Formater le projet (F2)", silent = false })
 -- association des erreurs avec la gesion diagnostique  pour F12
 --______________________________________________________________
 -- Déclare la fonction globalement
+local notifications = {}
 function _G.log_error(fichier, ligne, col, message)
   -- Récupère la location list actuelle
-  local current_loclist = vim.fn.getloclist(0)
+--  local current_loclist = vim.fn.getloclist(0)
 
 
   -- Ajoute la nouvelle erreur
-  table.insert(current_loclist, {
+  table.insert(notifications, {
     filename = fichier,
     lnum = tonumber(ligne),
     col = tonumber(col),
@@ -575,7 +584,7 @@ function _G.log_error(fichier, ligne, col, message)
   })
 
   -- Met à jour la location list
-  vim.fn.setloclist(0, current_loclist)
+  vim.fn.setloclist(0, notifications)
 
   -- Ouvre la location list si elle n'est pas déjà ouverte
   local loclist_wins = vim.fn.getloclist(0, { winid = 0 }).winid
@@ -635,64 +644,62 @@ end
 
 
 vim.keymap.set('n', '<F12>', function()
+	vim.cmd('write')
+	-- 1. Détection automatique
+	local bin_name = get_build_command()
 
 
+	local cmd = "cargo build --features=\"" .. bin_name .."\""
+	--print("⚙️ Exécution : " .. cmd)
+	--vim.cmd('sleep 3000m')  -- Pause de 3s
 
-  vim.cmd('write')
-  -- 1. Détection automatique
-  local bin_name = get_build_command()
+	root_dir = function(fname)
+	-- Cherche Cargo.toml en remontant depuis fname
+	local cargo_toml = vim.fs.find({'Cargo.toml'}, { upward = true, path = vim.fs.dirname(fname) }) end
 
-  if bin_name ~= nil then 
-  print("⚙️ Bin Name : " .. bin_name)
-  vim.cmd('sleep 2000m')  -- Pause 
-  end
+	-- 2. Exécution et parsing complet
+	local output = vim.fn.system(cmd .. " 2>&1")
+	local qf_list = 0
+	local current_error = {}
+
+	local i = #notifications
+	while  #notifications >= 1 do
+		table.remove(notifications, i)  -- Supprime l'élément courant
+		i = i - 1  -- Passe à l'élément suivant
+	end
 
 
+		
+	for line in output:gmatch("[^\r\n]+") do
+		if line:match('^error%[E%d+%]') then
+			current_error = {text = line}
+			elseif line:match('^%s*-->') then
+				local file, lnum, col = line:match('%s*--> (%S+):(%d+):(%d+)')
+				if file then
+					local msgtext = current_error.text or line
+					current_error = {
+						filename = file,
+						lnum = tonumber(lnum),
+						col = tonumber(col),
+						text = (current_error.text or "") .. "\n" .. line
+					}
 
-    
-    local cmd = "cargo build --features=\"" .. bin_name .."\""
-  --print("⚙️ Exécution : " .. cmd)
-  --vim.cmd('sleep 3000m')  -- Pause de 3s
+					-- log(current_error.filename, current_error.lnum, current_error.col,  msgtext)
 
-  root_dir = function(fname)
-    -- Cherche Cargo.toml en remontant depuis fname
-    local cargo_toml = vim.fs.find({'Cargo.toml'}, { upward = true, path = vim.fs.dirname(fname) }) end
-    
-   -- 2. Exécution et parsing complet
-    local output = vim.fn.system(cmd .. " 2>&1")
-    local qf_list = 0
-    local current_error = {}
-
-    for line in output:gmatch("[^\r\n]+") do
-      if line:match('^error%[E%d+%]') then
-        current_error = {text = line}
-      elseif line:match('^%s*-->') then
-        local file, lnum, col = line:match('%s*--> (%S+):(%d+):(%d+)')
-        if file then
-          local msgtext = current_error.text or line
-          current_error = {
-            filename = file,
-            lnum = tonumber(lnum),
-            col = tonumber(col),
-            text = (current_error.text or "") .. "\n" .. line
-          }
-
-       -- log(current_error.filename, current_error.lnum, current_error.col,  msgtext)
-
-        _G.log_error(current_error.filename, current_error.lnum, current_error.col,  msgtext)
-        qf_list = qf_list + 1
-        end
-      end
-    end
-    if qf_list == 0 then
-      log("✅ Build TEST réussi " .. bin_name)
-      print("✅ Build TEST réussi")
-  		vim.cmd('cclose') -- ferme la iste des erreur quickfix
-      vim.cmd('lclose') -- ferme la liste des erreu
-    else
-     log(string.format("⚠️ %d problème(s)  ",  qf_list) .. bin_name)
-      print(string.format("⚠️ %d problème(s) ", qf_list))
-    end
+					_G.log_error(current_error.filename, current_error.lnum, current_error.col,  msgtext)
+					qf_list = qf_list + 1
+				end
+			end
+		end
+		if qf_list == 0 then
+			log("✅ Build TEST réussi " .. bin_name)
+			print("✅ Build TEST réussi")
+			vim.cmd('cclose') -- ferme la iste des erreur quickfix
+			vim.cmd('lclose') -- ferme la liste des erreu
+		else
+			log(string.format("⚠️ %d problème(s)  ",  qf_list) .. bin_name)
+			print(string.format("⚠️ %d problème(s) ", qf_list) .. bin_name)
+		end
 
 
 end, { desc = 'Build (F12)', silent = false })
