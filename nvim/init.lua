@@ -119,7 +119,7 @@ vim.keymap.set('n', ':',
 
 
 
-vim.keymap.set('n', 'i', '<Esc>')  -- `OFF`
+vim.keymap.set('n','i', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','v'}, 'x', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 'h', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 'j', '<Esc>')  -- `OFF`
@@ -293,8 +293,6 @@ vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
     callback = function()
         vim.opt_local.statusline = "%!v:lua.Statusline.active()"
     end,
-    
-    
 })
 
 vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
@@ -756,8 +754,8 @@ end
 -- Active les `¶` automatiquement
 vim.cmd([[
   autocmd BufEnter,TextChanged,InsertLeave * lua _G.update_eol()
-]])
-
+]]
+)
 -- Désactive les `¶` en mode insertion
 vim.cmd([[
   autocmd InsertEnter * lua vim.api.nvim_buf_clear_namespace(0, vim.g.EOL_NS, 0, -1)
@@ -875,7 +873,8 @@ local function search_word_interactive()
     end
 
     -- Exécute la recherche avec rg
-    local cmd = string.format("rg --no-heading --line-number --column --word-regexp --color=never '%s' .", word)
+
+local cmd = string.format("rg --no-heading --line-number --column --word-regexp --glob '*.rs' --color=never '%s' .", word)
     local output = vim.fn.system(cmd)
 
     -- Vérifie si aucune occurrence n'est trouvée
@@ -956,7 +955,12 @@ end, { silent = true, noremap = true }) -- Réinitialise <Esc> pour un retour im
 
 
 
-vim.keymap.set('n', '<Ins>', 'i', { desc = "mode insert" })  -- `mode Insert`
+vim.keymap.set('n', '<Ins>',function()
+		vim.cmd(":startinsert")
+		vim.cmd([[highlight CursorLine guibg=#00005f ctermbg=17]])
+end,{ desc = "mode insert" })  -- `mode Insert`
+
+
 vim.keymap.set('n', '<Del>', 'x', { desc = "Supprimer le caractère sous le curseur" })  -- `delete_char_forward`
 vim.keymap.set('n', '<Up>', 'k', { desc = "Monter d'une ligne" })                     -- `move_visual_line_up`
 vim.keymap.set('n', '<Down>', 'j', { desc = "Descendre d'une ligne" })               -- `move_visual_line_down`

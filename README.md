@@ -127,11 +127,12 @@ update color and  plugin ibl  and capabilities.workspace
 <BR/>  
 <BR/> 
 <BR/>
-**2026-03-17 101:15** <F12> restructuring, with index deletion notification 
-
-
-
-
+**2026-03-17 01:15** <F12> restructuring, with index deletion notification 
+<BR/>
+<BR/>
+**2026-03-23 22:25** search_word_interactive ( only ".rs" )   
+minor ->  key.map ('n','Ins') change color 
+<BR/>
 
 
 
