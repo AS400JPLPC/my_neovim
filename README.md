@@ -100,31 +100,32 @@ and the control startup function that checks the integrity of the project: first
 
 Perhaps I should have used plugins, but the goal was to do as little external intervention as possible and use Neovim as much as possible to have an editor that works with Rust. For those who want another LSP, just change the LSP part; the rest is the same.
 
-Translated with DeepL.com (free version)  
-<BR/><BR/>
+Translated with DeepL.com (free version)
+<BR/>
+<BR/>
 **2026-03-02 20:10**  udpate tabulation ,  goto definition, Reference
 <BR/>
-<BR/><BR/>
-**2026-03-07 22:30**  udpate full,  After all the tests, reset “init.lua” and minimum plugin distribution, introduce “fzf,” pipe Neovim sessions, and set up interactive Neovim formatting.<BR/>
-**2026-03-07 22:30** test: VTE and alacritty 
+<BR/>
+**2026-03-07 22:30**  udpate full,  After all the tests, reset “init.lua” and minimum plugin distribution, introduce “fzf,” pipe Neovim sessions, and set up interactive Neovim formatting.
+<BR/>
+<BR/>
+**2026-03-07 22:30** test: VTE and alacritty
 <BR/>
 <BR/>
 **2026-03-08 15:00** warning Arch  neovim    NVIM v0.11.6  LuaJIT 2.1.1772619647<BR/>
 update color and  plugin ibl  and capabilities.workspace
-<BR/>  
-<BR/> 
 <BR/>
-**2026-03-13 13:50** warning Arch  remove pacman  nvim-web-devicons  add pluggin nvim-tree/nvim-web-devicons<BR/>  
-<BR/>  
-<BR/> 
 <BR/>
-**2026-03-13 13:50** warning Arch  remove pacman  nvim-web-devicons  add pluggin nvim-tree/nvim-web-devicons<BR/>
-<BR/>  
-<BR/> 
+**2026-03-13 13:50** warning Arch  remove pacman  nvim-web-devicons  add pluggin nvim-tree/nvim-web-devicons
+<BR/>
+<BR/>
+**2026-03-13 13:50** warning Arch  remove pacman  nvim-web-devicons  add pluggin nvim-tree/nvim-web-devicons
+<BR/>
 <BR/>
 **2026-03-16 11:50** Improvements to the search function <A-r>
+<BR/>
+<BR/>
 **2026-03-16 18:00** ISorry, I accidentally missed <C-g> goto line: back in action 
-<BR/>  
 <BR/> 
 <BR/>
 **2026-03-17 01:15** <F12> restructuring, with index deletion notification 
@@ -133,7 +134,11 @@ update color and  plugin ibl  and capabilities.workspace
 **2026-03-23 22:25** search_word_interactive ( only ".rs" )   
 minor ->  key.map ('n','Ins') change color 
 <BR/>
-
+<BR/>
+**2026-03-30 17:10** add <C-d> delete line   
+clear <C-A..Z> function off default  
+minor -> <ESC> color notext 
+<BR/>
 
 
 <BR/>

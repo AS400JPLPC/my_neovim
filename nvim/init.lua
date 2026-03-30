@@ -119,6 +119,34 @@ vim.keymap.set('n', ':',
 
 
 
+vim.keymap.set({'n','i','v'}, '<C-A>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-B>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-C>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-D>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-E>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-F>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-G>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-H>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-I>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-J>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-K>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-L>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-M>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-N>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-O>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-P>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-Q>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-R>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-S>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-T>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-U>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-V>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-W>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-X>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-Y>', '<Esc>')  -- `OFF`
+vim.keymap.set({'n','i','v'}, '<C-Z>', '<Esc>')  -- `OFF`
+
+
 vim.keymap.set('n','i', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','v'}, 'x', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 'h', '<Esc>')  -- `OFF`
@@ -951,6 +979,7 @@ vim.keymap.set({'n','i', 'v', 's', 'x'}, '<Esc>', function()
     vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235]])
     if vim.fn.mode() == 'i' then vim.cmd('stopinsert') end
     vim.cmd([[ execute "normal! \<ESC>" ]])
+    vim.cmd([[highlight NonText guifg=#5a0d0d cterm=NONE guibg=NONE]])
 end, { silent = true, noremap = true }) -- Réinitialise <Esc> pour un retour immédiat en mode normal
 
 
@@ -960,7 +989,7 @@ vim.keymap.set('n', '<Ins>',function()
 		vim.cmd([[highlight CursorLine guibg=#00005f ctermbg=17]])
 end,{ desc = "mode insert" })  -- `mode Insert`
 
-
+vim.keymap.set('n', '<C-d>', 'dd', { desc = "Supprimer ligne" })  -- `delete_char_forward
 vim.keymap.set('n', '<Del>', 'x', { desc = "Supprimer le caractère sous le curseur" })  -- `delete_char_forward`
 vim.keymap.set('n', '<Up>', 'k', { desc = "Monter d'une ligne" })                     -- `move_visual_line_up`
 vim.keymap.set('n', '<Down>', 'j', { desc = "Descendre d'une ligne" })               -- `move_visual_line_down`
@@ -1065,16 +1094,6 @@ vim.api.nvim_create_autocmd('VimEnter', {
 })
 
 
---__________________________________
---solution sytem de base 
---__________________________________
-
---vim.keymap.set({'n','v'}, '<C-e>', function()
---  vim.cmd('only')  -- Ne garder qu'une seule fenêtre
---  vim.cmd('bd')    -- Fermer le buffer courant (sans vérification)
---  vim.cmd('Ntree') -- Ouvrir netrw dans la fenêtre courante
---  print(" ")
---end, { desc = "Fermer le buffer et revenir sur l'explorateur de fichiers" })
 --_____________________________________________________________________________
 --_____________________________________________________________________________
 
@@ -1132,11 +1151,14 @@ end, { desc = "Purge TOTALE (sauf buffer actuel)", silent = false })
 -- sauvegarde  
 vim.keymap.set({'i','n'}, '<C-s>', function() 
 vim.cmd(':write!')
+
+vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235]])
 if vim.fn.mode() == 'i' then vim.cmd('stopinsert') end
+vim.cmd([[ execute "normal! \<ESC>" ]])
+vim.cmd([[highlight NonText guifg=#5a0d0d cterm=NONE guibg=NONE]])
   
 local src_name = vim.fn.expand('%:p')
 log("✅ sauvegarde" .. src_name)
-
 end, { desc = "Sauvegarder" })
 
 --______________________________________________________________
