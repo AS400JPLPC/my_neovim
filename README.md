@@ -139,6 +139,12 @@ minor ->  key.map ('n','Ins') change color
 clear <C-A..Z> function off default  
 minor -> <ESC> color notext 
 <BR/>
+<BR/>
+**2026-04-01 02:30** Hi, I'm happy to report that I updated to NVIM 11 this morning... Anyway, using the schedule feature (UI update), I was able to customize the visual appearance of Insert and Normal modes.
+<BR/>
+<BR/>
+
+
 
 
 <BR/>

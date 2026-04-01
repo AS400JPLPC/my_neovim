@@ -84,7 +84,7 @@ local allowed_commands = {
   N = true,   -- recherche précédente
   o = true, -- modes insertion
   v = true,   -- mode visuel
-  ["<Esc>"] = true, -- quitter le mode insertion/remplacement
+
 }
 --  y = true,   -- copier (yank)
 --  p = true,   -- coller (put)
@@ -97,7 +97,7 @@ local allowed_commands = {
 --  a = true,   -- modes insertion
 -- ["Ctrl+r"] = true, -- rétablir (redo)
 -- Désactive tout le reste en mode normal
-
+--  ["<Esc>"] = true, -- quitter le mode insertion/remplacement
 
 vim.keymap.set('n', ':',
   function()
@@ -121,7 +121,7 @@ vim.keymap.set('n', ':',
 
 vim.keymap.set({'n','i','v'}, '<C-A>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-B>', '<Esc>')  -- `OFF`
-vim.keymap.set({'n','i','v'}, '<C-C>', '<Esc>')  -- `OFF`
+--vim.keymap.set({'n','i','v'}, '<C-C>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-D>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-E>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-F>', '<Esc>')  -- `OFF`
@@ -146,8 +146,7 @@ vim.keymap.set({'n','i','v'}, '<C-X>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-Y>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-Z>', '<Esc>')  -- `OFF`
 
-
-vim.keymap.set('n','i', '<Esc>')  -- `OFF`
+vim.keymap.set('n', 'i', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','v'}, 'x', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 'h', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 'j', '<Esc>')  -- `OFF`
@@ -161,6 +160,41 @@ vim.keymap.set('n', 'a', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 's', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 'd', '<Esc>')  -- `OFF`
 --*****************************************************************
+
+-- Configuration des couleurs (appelée une seule fois)
+local function setup_colors()
+  vim.cmd([[
+    highlight Normal guifg=#ffffff guibg=#1c1c1c cterm=NONE
+    highlight Comment guifg=#af875f ctermfg=137 guibg=NONE ctermbg=NONE
+    highlight String guifg=#00af00 ctermfg=34 guibg=NONE ctermbg=NONE
+    highlight Number guifg=#ffaf00 ctermfg=214 guibg=NONE ctermbg=NONE
+    highlight Keyword guifg=#ff8700 ctermfg=208 guibg=NONE ctermbg=NONE
+    highlight Function guifg=#51afef ctermfg=39 guibg=NONE ctermbg=NONE
+    highlight Type guifg=#d7d700 ctermfg=184 guibg=NONE ctermbg=NONE
+    highlight Identifier guifg=#d75fff ctermfg=170 guibg=NONE ctermbg=NONE
+    highlight Boolean guifg=#87875f ctermfg=101 guibg=NONE ctermbg=NONE
+    highlight Error guifg=#ff0000 ctermfg=196 guibg=NONE ctermbg=NONE
+    highlight Constant guifg=#87af5f ctermfg=107 guibg=NONE ctermbg=NONE
+    highlight PreProc guifg=#ba9cef ctermfg=147 guibg=NONE ctermbg=NONE
+    highlight CursorLine guibg=#262626 ctermbg=235 guifg=NONE ctermfg=NONE
+    highlight CursorColumn guibg=#262626 ctermbg=235 guifg=NONE ctermfg=NONE
+    set cursorcolumn
+    highlight Cursor guifg=NONE ctermfg=NONE guibg=NONE ctermbg=NONE gui=reverse cterm=reverse
+    set guicursor=n-v-c:block-blinkon300-blinkoff300
+    set guicursor+=i-ci-ve:block-blinkon300-blinkoff300
+    set guicursor+=r-cr:hor20,o:hor20
+    highlight statusline guibg=#000000 guifg=#ff0000 cterm=NONE
+    highlight DiagnosticError guifg=#ff0000 guibg=NONE ctermfg=196 ctermbg=NONE gui=bold
+    highlight DiagnosticWarn guifg=#ffaf00 guibg=NONE ctermfg=214 ctermbg=NONE gui=bold
+    highlight DiagnosticInfo guifg=#51afef guibg=NONE ctermfg=39 ctermbg=NONE gui=bold
+    highlight DiagnosticHint guifg=#87af5f guibg=NONE ctermfg=107 ctermbg=NONE gui=bold
+    highlight NonText guifg=#5a0d0d cterm=NONE guibg=NONE
+    highlight IblIndentChar guifg=#3a3a3a ctermfg=237 guibg=NONE ctermbg=NONE
+  ]])
+end
+
+
+
 --============================================================
 -- Système de log unifié  (ex: log("⚙️ Bin Name:", bin_name))
 
@@ -262,10 +296,13 @@ end)
 --=============================================
 -- Désactive remplacement 
 --=============================================
-vim.keymap.set('i', '<Insert>', function()
-    vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235]])
+
+vim.keymap.set('i', '<Ins>', function()
     vim.cmd('stopinsert') 
-    vim.cmd([[ execute "normal! \<ESC>" ]])
+
+    vim.schedule(function()
+        vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235 guifg=NONE ctermfg=NONE]])
+    end)
 end, { silent = true, noremap = true })
 
 
@@ -302,9 +339,15 @@ function Statusline.active()
     -- Calcul du padding pour atteindre max_width (120) :
     local padding = string.rep(" ", max_width - #filename - #position - #smode - #modified -30)
 -- change color for insert
-vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235]])
+    vim.schedule(function()
+        vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235 guifg=NONE ctermfg=NONE]])
+    end)
 
-if (smode == "i")  then vim.cmd([[highlight CursorLine guibg=#00005f ctermbg=17 ]]) end
+		if (smode == "i")  then 
+				vim.schedule(function()
+				    vim.cmd([[highlight CursorLine guibg=#00005f ctermbg=17 guifg=NONE ctermfg=NONE]])
+				end)
+		end
 
     return string.format("[%s]%s position:%s    :mode:%s    modifier:%s ", filename, padding, position, smode, modified)
 end
@@ -777,6 +820,11 @@ _G.update_eol = function()
       })
     end
   end
+
+ 	vim.schedule(function()
+  	vim.cmd([[highlight CursorLine guibg=#00005f ctermbg=17 guifg=NONE ctermfg=NONE]])
+  end)
+  
 end
 
 -- Active les `¶` automatiquement
@@ -830,8 +878,7 @@ end, { desc = "Ouvrir Zsnipset verticale" })
 -- Raccourcis pour naviguer entre les erreurs (comme avant)
 vim.keymap.set({ 'n', 'i' }, '<A-n>', ':lnext<CR>', { desc = "Erreur suivante" })
 vim.keymap.set({ 'n', 'i' }, '<A-p>', ':lprev<CR>', { desc = "Erreur précédente" })
---vim.keymap.set({ 'n', 'i' }, '<A-c>', ':lclose<CR>', { desc = "Fermer la liste des erreurs" })
---vim.keymap.set({ 'n', 'i' }, '<A-l>', ':lopen<CR>', { desc = "Ouvrir la liste des erreurs" })
+
 
 
 
@@ -974,17 +1021,18 @@ vim.keymap.set('n', 'N', 'N', { desc = "Rechercher l'occurrence précédente" })
 
 --______________________________________________________________
 
+vim.keymap.set({'n','i','v','s','x'}, '<Esc>', function()
+    if vim.fn.mode() == 'i' then
+        vim.cmd('stopinsert')
+    else
+        vim.cmd([[execute "normal! \<ESC>"]])
+    end
+    vim.schedule(function()
+        vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235 guifg=NONE ctermfg=NONE]])
+    end)
+end, { silent = true, noremap = true })
 
-vim.keymap.set({'n','i', 'v', 's', 'x'}, '<Esc>', function()
-    vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235]])
-    if vim.fn.mode() == 'i' then vim.cmd('stopinsert') end
-    vim.cmd([[ execute "normal! \<ESC>" ]])
-    vim.cmd([[highlight NonText guifg=#5a0d0d cterm=NONE guibg=NONE]])
-end, { silent = true, noremap = true }) -- Réinitialise <Esc> pour un retour immédiat en mode normal
-
-
-
-vim.keymap.set('n', '<Ins>',function()
+vim.keymap.set('n', '<Insert>',function()
 		vim.cmd(":startinsert")
 		vim.cmd([[highlight CursorLine guibg=#00005f ctermbg=17]])
 end,{ desc = "mode insert" })  -- `mode Insert`
@@ -999,9 +1047,8 @@ vim.keymap.set('n', '<PageUp>', '<C-b>', { desc = "Page précédente" })        
 vim.keymap.set('n', '<PageDown>', '<C-f>', { desc = "Page suivante" })               -- `page_down`
 vim.keymap.set('n', '<Home>', '^', { desc = "Aller au début de la ligne" })          -- `goto_line_start`
 vim.keymap.set('n', '<End>', 'g_', { desc = "Aller à la fin de la ligne" })          -- `goto_line_end_newline`
---vim.keymap.set('n', '<CR>', 'o', { desc = "Insérer une nouvelle ligne" })            -- `insert_newline  Enter`
+vim.keymap.set('i', '<CR>', '<CR>', { desc = "Insérer une nouvelle ligne" })            -- `insert_newline  Enter`
 --______________________________________________________________
-
 
 
 
@@ -1116,6 +1163,8 @@ end, { desc = "Aller à la ligne" })
 -- Purge TOTALE : buffers SAUF le buffer actuel, historique, presse-papiers, ET le buffer #
 -- Version avec vérification explicite du buffer #
 vim.keymap.set({'n', 'i', 'v'}, '<C-l>', function()
+
+
   local current_buf = vim.api.nvim_get_current_buf()
 
   -- 1  Ferme tous les buffers sauf l'actuel
@@ -1142,6 +1191,11 @@ vim.keymap.set({'n', 'i', 'v'}, '<C-l>', function()
   vim.fn.setreg('"', '')
   vim.fn.setreg('+', '')
 
+  vim.schedule(function()
+      vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235 guifg=NONE ctermfg=NONE]])
+  end)
+        
+        
   print("🧹 Tout purgé SAUF le buffer actuel (et # supprimé si possible)")
 end, { desc = "Purge TOTALE (sauf buffer actuel)", silent = false })
 
@@ -1152,10 +1206,12 @@ end, { desc = "Purge TOTALE (sauf buffer actuel)", silent = false })
 vim.keymap.set({'i','n'}, '<C-s>', function() 
 vim.cmd(':write!')
 
-vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235]])
 if vim.fn.mode() == 'i' then vim.cmd('stopinsert') end
 vim.cmd([[ execute "normal! \<ESC>" ]])
-vim.cmd([[highlight NonText guifg=#5a0d0d cterm=NONE guibg=NONE]])
+
+  vim.schedule(function()
+		vim.cmd([[highlight NonText guifg=#5a0d0d cterm=NONE guibg=NONE]])
+  end)
   
 local src_name = vim.fn.expand('%:p')
 log("✅ sauvegarde" .. src_name)
@@ -1197,37 +1253,7 @@ local ibl = require("ibl")
 -- Charger nvim-web-devicons (version locale)
 require('nvim-web-devicons').setup()
 
--- Configuration des couleurs (appelée une seule fois)
-local function setup_colors()
-  vim.cmd([[
-    highlight Normal guifg=#ffffff guibg=#1c1c1c cterm=NONE
-    highlight Comment guifg=#af875f ctermfg=137 guibg=NONE ctermbg=NONE
-    highlight String guifg=#00af00 ctermfg=34 guibg=NONE ctermbg=NONE
-    highlight Number guifg=#ffaf00 ctermfg=214 guibg=NONE ctermbg=NONE
-    highlight Keyword guifg=#ff8700 ctermfg=208 guibg=NONE ctermbg=NONE
-    highlight Function guifg=#51afef ctermfg=39 guibg=NONE ctermbg=NONE
-    highlight Type guifg=#d7d700 ctermfg=184 guibg=NONE ctermbg=NONE
-    highlight Identifier guifg=#d75fff ctermfg=170 guibg=NONE ctermbg=NONE
-    highlight Boolean guifg=#87875f ctermfg=101 guibg=NONE ctermbg=NONE
-    highlight Error guifg=#ff0000 ctermfg=196 guibg=NONE ctermbg=NONE
-    highlight Constant guifg=#87af5f ctermfg=107 guibg=NONE ctermbg=NONE
-    highlight PreProc guifg=#ba9cef ctermfg=147 guibg=NONE ctermbg=NONE
-    highlight CursorLine guibg=#262626 ctermbg=235 guifg=NONE ctermfg=NONE
-    highlight CursorColumn guibg=#262626 ctermbg=235 guifg=NONE ctermfg=NONE
-    set cursorcolumn
-    highlight Cursor guifg=NONE ctermfg=NONE guibg=NONE ctermbg=NONE gui=reverse cterm=reverse
-    set guicursor=n-v-c:block-blinkon300-blinkoff300
-    set guicursor+=i-ci-ve:block-blinkon300-blinkoff300
-    set guicursor+=r-cr:hor20,o:hor20
-    highlight statusline guibg=#000000 guifg=#ff0000 cterm=NONE
-    highlight DiagnosticError guifg=#ff0000 guibg=NONE ctermfg=196 ctermbg=NONE gui=bold
-    highlight DiagnosticWarn guifg=#ffaf00 guibg=NONE ctermfg=214 ctermbg=NONE gui=bold
-    highlight DiagnosticInfo guifg=#51afef guibg=NONE ctermfg=39 ctermbg=NONE gui=bold
-    highlight DiagnosticHint guifg=#87af5f guibg=NONE ctermfg=107 ctermbg=NONE gui=bold
-    highlight NonText guifg=#5a0d0d cterm=NONE guibg=NONE
-    highlight IblIndentChar guifg=#3a3a3a ctermfg=237 guibg=NONE ctermbg=NONE
-  ]])
-end
+
 
 local function setup_ibl()
   ibl.setup({
