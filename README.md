@@ -144,7 +144,11 @@ minor -> <ESC> color notext
 <BR/>
 <BR/>
 
-
+<BR/>
+<BR/>
+**2026-04-20 18:00** add new line please take a look at neovim.pgn   i <CR> /  n 'o' .
+<BR/>
+<BR/>
 
 
 <BR/>

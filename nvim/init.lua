@@ -82,10 +82,12 @@ local allowed_commands = {
   u = true,   -- annuler (undo)
   n = true,   -- recherche suivante
   N = true,   -- recherche précédente
-  o = true, -- modes insertion
   v = true,   -- mode visuel
+	o = true,   -- modes insertion
 
 }
+
+--  o = true,   -- modes insertion
 --  y = true,   -- copier (yank)
 --  p = true,   -- coller (put)
 --  h = true, j =true, k = true, l = true, -- déplacements
@@ -1018,6 +1020,9 @@ vim.keymap.set('n', 'u', 'u', { desc = "Annuler" })                             
 vim.keymap.set('n', 'r', '<C-r>', { desc = "Rétablir" })                             -- `redo` (Neovim: `<C-r>`)
 vim.keymap.set('n', 'n', 'n', { desc = "Rechercher l'occurrence suivante" })         -- `search_next` (déjà natif)
 vim.keymap.set('n', 'N', 'N', { desc = "Rechercher l'occurrence précédente" })       -- `search_prev` (déjà natif)
+vim.keymap.set('n', 'o', '<Esc>o<Esc>', { desc = "New ligne" })                      -- `new ligne`)
+
+
 
 --______________________________________________________________
 
@@ -1047,7 +1052,7 @@ vim.keymap.set('n', '<PageUp>', '<C-b>', { desc = "Page précédente" })        
 vim.keymap.set('n', '<PageDown>', '<C-f>', { desc = "Page suivante" })               -- `page_down`
 vim.keymap.set('n', '<Home>', '^', { desc = "Aller au début de la ligne" })          -- `goto_line_start`
 vim.keymap.set('n', '<End>', 'g_', { desc = "Aller à la fin de la ligne" })          -- `goto_line_end_newline`
-vim.keymap.set('i', '<CR>', '<CR>', { desc = "Insérer une nouvelle ligne" })            -- `insert_newline  Enter`
+vim.keymap.set('i', '<CR>', '<CR>', { desc = "Insérer une nouvelle ligne" })         -- `insert_newline  Enter`
 --______________________________________________________________
 
 
