@@ -150,6 +150,12 @@ minor -> <ESC> color notext
 <BR/>
 <BR/>
 
+<BR/>
+<BR/>
+**2026-05-12 10:55** change lsp.config   add  excludeDirs = { "target" }  no block target folder.
+<BR/>
+<BR/>
+
 
 <BR/>
 The F12 function has been unraveled, and shows you how to use the concept of dialogue for your errors.

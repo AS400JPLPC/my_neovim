@@ -135,7 +135,7 @@ vim.keymap.set({'n','i','v'}, '<C-K>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-L>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-M>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-N>', '<Esc>')  -- `OFF`
-vim.keymap.set({'n','i','v'}, '<C-O>', '<Esc>')  -- `OFF`
+--vim.keymap.set({'n','i','v'}, '<C-O>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-P>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-Q>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-R>', '<Esc>')  -- `OFF`
@@ -144,7 +144,7 @@ vim.keymap.set({'n','i','v'}, '<C-T>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-U>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-V>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-W>', '<Esc>')  -- `OFF`
-vim.keymap.set({'n','i','v'}, '<C-X>', '<Esc>')  -- `OFF`
+--vim.keymap.set({'n','i','v'}, '<C-X>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-Y>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-Z>', '<Esc>')  -- `OFF`
 
@@ -502,6 +502,9 @@ vim.lsp.config('rust_analyzer', {
 
   settings = {
     ['rust-analyzer'] = {
+      files = {
+        excludeDirs = { "target" }
+      },
       cargo = {
         buildScripts = {
           enable = true,    -- Active l'analyse des build scripts
