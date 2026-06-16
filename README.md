@@ -1,3 +1,4 @@
+version 0.12. OK  
 
 neovim for rust   
   
