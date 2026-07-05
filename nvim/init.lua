@@ -67,7 +67,7 @@ vim.fn.mkdir(tempdir, "p")  -- Crée le dossier s'il n'existe pas
 
 -- Désactive toutes les touches de fonction SAUF F2, F5 et F12
 for i = 1, 12 do
-  if i ~= 2 and i ~= 5 and i ~= 7 and i ~= 12 then  -- Garde F2, F5 et F12
+  if i ~= 2 and i ~= 3 and i ~= 5 and i ~= 7 and i ~= 12 then  -- Garde F2, F5 et F12
     vim.keymap.set({'n', 'i', 'v'}, '<F' .. i .. '>', '<Nop>')
   end
   
@@ -637,6 +637,46 @@ vim.keymap.set('n', '<F2>', function()
     print("⚠️ Échec : " .. output)
   end
 end, { desc = "Formater le projet (F2)", silent = false })
+
+
+--______________________________________________________________
+-- Récupère le nom du package Rust dans le répertoire courant
+--______________________________________________________________
+local function get_rust_package_name()
+  local cwd = vim.fn.getcwd()
+  local cmd = string.format('cd %s && cargo metadata --format-version=1 --no-deps 2>/dev/null | jq -r \'.packages[] | select(.manifest_path | contains("%s")) | .name\'', cwd, cwd)
+  local output = vim.fn.system(cmd)
+  if vim.v.shell_error == 0 and output ~= "" then
+    return output:gsub("%s+", "") -- Nettoie les espaces/retours à la ligne
+  end
+  return nil
+end
+
+--______________________________________________________________
+-- F2-formate le package
+--______________________________________________________________
+vim.keymap.set('n', '<F3>', function()
+  local cwd = vim.fn.getcwd()
+  print("Formatage dans : " .. cwd)
+
+  -- Récupère le nom du package
+  local package_name = get_rust_package_name()
+  if not package_name then
+    vim.notify("⚠️ Aucun package Rust trouvé dans ce répertoire.", vim.log.levels.WARN)
+    return
+  end
+
+  -- Exécute cargo fmt pour ce package
+  local cmd = string.format('cd %s && cargo fmt -v --package="%s" 2>&1', cwd, package_name)
+  local output = vim.fn.system(cmd)
+
+  if vim.v.shell_error == 0 then
+    vim.notify("✅ Package '" .. package_name .. "' formaté !", vim.log.levels.INFO)
+    vim.cmd('checktime')
+  else
+    vim.notify("⚠️ Échec pour '" .. package_name .. "' : " .. output, vim.log.levels.ERROR)
+  end
+end, { desc = "Formater le package Rust courant (F3)", silent = false })
 
 
 --______________________________________________________________

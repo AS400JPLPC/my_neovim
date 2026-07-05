@@ -157,6 +157,12 @@ minor -> <ESC> color notext
 <BR/>
 <BR/>
 
+<BR/>
+<BR/>
+**2026-07-05 20:15** add F3 formatage package.
+<BR/>
+<BR/>
+
 
 <BR/>
 The F12 function has been unraveled, and shows you how to use the concept of dialogue for your errors.
