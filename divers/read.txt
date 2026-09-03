@@ -1,4 +1,4 @@
-creat ~/.config/rust-analyzer
+creat ~/.config/rust-analyzer  etc
 
 worktest= libtui my lib for tui
 

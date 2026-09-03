@@ -50,7 +50,9 @@ cargo_check_errors  Start-up control of the project.
   
 Function: “log” for traceability, or debugging  
   
-"F2" active source Format the project, involves automatic saving.  
+"F2" / "F3" active source Format the project, involves automatic saving.    
+  
+"F4" active contrôle Clippy.  
   
 "F12" active source compilation option, to check consistency, involves automatic saving.    
   
@@ -58,7 +60,7 @@ Function: “log” for traceability, or debugging
   
 "F7"  clear log    
   
-"Alt-r"  Reference: I use “ripgrep,” which is normally included in your distro.
+"Alt-r"  Interactive word search
   
 UTF-8 character consistency  
   
@@ -163,6 +165,14 @@ minor -> <ESC> color notext
 <BR/>
 <BR/>
 
+<BR/>
+<BR/>
+**2026-09-03 21:00** After the latest Neovim update, I ran into some issues that led me to start over and build a terminal in Rust.
+At the same time, I fixed some issues that had arisen due to the change in terminal type.  
+[Terminal Rust](https://github.com/AS400JPLPC/term_rust)`
+
+<BR/>
+<BR/>
 
 <BR/>
 The F12 function has been unraveled, and shows you how to use the concept of dialogue for your errors.
@@ -184,7 +194,6 @@ alias rustfmt="$HOME/.cargo/bin/rustfmt"<BR/>
 <BR/>
 
 . "$HOME/.cargo/env"<BR/>
-
 
   
   
@@ -218,8 +227,6 @@ pacman -S ttf-fira-code
 pacman -S ttf-firacode-nerd 
 
 pacman -S neovim  
-
-pacman -S alacritty  
 
 
 I wanted to have very few dependencies in my configuration, which is why I downloaded two plugins.

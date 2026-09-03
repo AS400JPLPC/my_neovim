@@ -1,0 +1,29 @@
+# ~/.config/rustfmt/rustfmt.toml
+max_width = 120               # Limite à 120 caractères par ligne
+fn_call_width = 120           # Largeur max pour les appels de fonction
+struct_lit_width = 120        # Largeur max pour les littéraux de struct
+fn_params_layout = "Compressed"  # Paramètres de fonction compactés sur la ligne
+
+# Utilisation des tabulations
+hard_tabs = true              # ✅ Utilise des tabulations réelles (\t)
+tab_spaces = 4               # Largeur d'une tabulation (pour l'alignement)
+indent_style = "Block"        # Style d'indentation compatible avec les tabulations
+newline_style = "Auto"        # Gère les nouvelles lignes automatiquement
+
+# Désactive les heuristiques de raccourcissement
+use_small_heuristics = "Off"  # Désactive le comportement de raccourcissement automatique
+
+# Autres options pour éviter les conflits   pas encore operationel
+wrap_comments = false         # Désactive l'enroulement des commentaires
+format_code_in_doc_comments = false  # Désactive le formatage du code dans les commentaires
+normalize_comments = false    # Désactive la normalisation des commentaires
+normalize_doc_attributes = false  # Désactive la normalisation des attributs de doc
+
+
+# Exemple d'options supplémentaires
+fn_single_line = true       # Met les fonctions courtes sur une seule ligne
+where_single_line = true    # Met les clauses `where` sur une seule ligne
+
+brace_style = "PreferSameLine"         # Accolades des fonctions sur la même ligne
+control_brace_style = "AlwaysSameLine" # Accolades des structures de contrôle sur la même ligne
+struct_lit_single_line = true          # Littéraux de struct sur une seule ligne si possible

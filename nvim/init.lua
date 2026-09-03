@@ -3,7 +3,6 @@
 --.~/ with Mistral AI, which taught me a great deal
 -- Configuration de base pour ntree
 
-
 -- 1. Force l'encodage UTF-8 pour les fichiers et le terminal
 vim.opt.encoding = 'utf-8'        -- Encodage interne de Neovim
 vim.opt.fileencoding = 'utf-8'    -- Encodage des fichiers ouverts/sauvegardés
@@ -16,19 +15,21 @@ vim.opt.termguicolors = true     -- Active les couleurs 24-bit (plus intenses)
 
 
 -- Utilise des VRAIES tabulations (\t) et non des espaces
+-- Configure Neovim pour utiliser des tabulations (4 espaces par tabulation)
 vim.opt.tabstop = 4          -- Largeur d'une tabulation (affichage)
 vim.opt.shiftwidth = 4       -- Largeur de l'indentation (>>, <<)
 vim.opt.expandtab = false    -- Désactive la conversion des \t en espaces
 vim.opt.softtabstop = 0      -- Désactive (évite les mélanges)
 vim.opt.smarttab = true      -- Comportement intelligent des tabulations
 
+
 -- Police (Source Code Pro, comme dans vos mémos)
-vim.opt.guifont = "Fira Code Regular:h13"  -- Ajustez la taille (h12, h13, etc.) selon vos besoins
+vim.opt.guifont = "Fira Code Regular:h14"  -- Ajustez la taille (h12, h13, etc.) selon vos besoins
 
 
 -- recherche
 vim.opt.ignorecase = true -- ignore la casse quand on recherche
-vim.opt.smartcase = true -- sauf quand on fait une recherche avec des majuscules
+vim.opt.smartcase = true  -- sauf quand on fait une recherche avec des majuscules
 vim.opt.signcolumn = "yes"
 
 
@@ -55,6 +56,10 @@ vim.opt.cursorline = true
 -- 2. Désactive l'historique de less
 vim.env.LESSHISTFILE = "-"
 
+
+local notifications = {}
+
+
 -- 2. Configuration du dossier temporaire (unique par instance)
 local tempdir = vim.fn.expand("~/.cache/nvim/tmp/tmp_" .. vim.fn.getpid())
 vim.env.TMPDIR = tempdir
@@ -67,7 +72,7 @@ vim.fn.mkdir(tempdir, "p")  -- Crée le dossier s'il n'existe pas
 
 -- Désactive toutes les touches de fonction SAUF F2, F5 et F12
 for i = 1, 12 do
-  if i ~= 2 and i ~= 3 and i ~= 5 and i ~= 7 and i ~= 12 then  -- Garde F2, F5 et F12
+  if i ~= 2 and i ~= 3 and i ~= 4 and i ~= 5 and i ~= 7 and i ~= 12 then  -- Garde F2, F5 et F12
     vim.keymap.set({'n', 'i', 'v'}, '<F' .. i .. '>', '<Nop>')
   end
   
@@ -83,7 +88,7 @@ local allowed_commands = {
   n = true,   -- recherche suivante
   N = true,   -- recherche précédente
   v = true,   -- mode visuel
-	o = true,   -- modes insertion
+  o = true,   -- modes insertion
 
 }
 
@@ -116,8 +121,27 @@ vim.keymap.set('n', ':',
 
 -- use keyboard  ex i = Ins , x = del..
 
+
 -- active for test 
---vim.keymap.del('n', ':')   -- ON
+vim.keymap.del('n', ':')   -- ON
+
+
+
+-- Désactive la gestion des séquences de touches problématiques
+vim.api.nvim_set_keymap('i', '<CR>', '<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', '<BS>', '<BS>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', '<Tab>', '<Tab>', { noremap = true, silent = true })
+
+vim.keymap.set('n', 'i', '<Esc>', { noremap = true, silent = true })
+vim.keymap.set('n', 'I', '<Esc>', { noremap = true, silent = true })
+
+
+
+-- Désactive toutes les combinaisons <Shift> + lettre en mode normal
+for letter = 65, 90 do  -- A à Z en code ASCII
+    local key = string.char(letter)  -- Convertit le code ASCII en lettre (A, B, C, etc.)
+    vim.keymap.set('n', '<S-' .. key .. '>', '<Nop>', { noremap = true, silent = true })
+end
 
 
 
@@ -149,6 +173,7 @@ vim.keymap.set({'n','i','v'}, '<C-Y>', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','i','v'}, '<C-Z>', '<Esc>')  -- `OFF`
 
 vim.keymap.set('n', 'i', '<Esc>')  -- `OFF`
+vim.keymap.set('n', 'I', '<Esc>')  -- `OFF`
 vim.keymap.set({'n','v'}, 'x', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 'h', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 'j', '<Esc>')  -- `OFF`
@@ -163,6 +188,7 @@ vim.keymap.set('n', 's', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 'd', '<Esc>')  -- `OFF`
 --*****************************************************************
 
+-- Configuration des couleurs (appelée une seule fois)
 -- Configuration des couleurs (appelée une seule fois)
 local function setup_colors()
   vim.cmd([[
@@ -192,6 +218,7 @@ local function setup_colors()
     highlight DiagnosticHint guifg=#87af5f guibg=NONE ctermfg=107 ctermbg=NONE gui=bold
     highlight NonText guifg=#5a0d0d cterm=NONE guibg=NONE
     highlight IblIndentChar guifg=#3a3a3a ctermfg=237 guibg=NONE ctermbg=NONE
+    highlight LineNr ctermfg=8 guifg=#808080
   ]])
 end
 
@@ -299,7 +326,7 @@ end)
 -- Désactive remplacement 
 --=============================================
 
-vim.keymap.set('i', '<Ins>', function()
+vim.keymap.set({'i','v'}, '<Ins>', function()
     vim.cmd('stopinsert') 
 
     vim.schedule(function()
@@ -469,6 +496,25 @@ local on_attach = function(client, bufnr)
   })
 end
 
+-- Stocke la dernière date de modification de chaque fichier
+local last_modified = {}
+
+vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost" }, {
+    group = vim.api.nvim_create_augroup("AutoReload", { clear = true }),
+    callback = function()
+        local file_path = vim.fn.expand('%:p')
+        last_modified[file_path] = vim.fn.getftime(file_path)
+        
+    
+    vim.opt.expandtab = false-- Convertit les tabulations en espaces
+    vim.opt.tabstop = 4      -- Nombre d'espaces par tabulation
+    vim.opt.shiftwidth = 4   -- Taille de l'indentation automatique
+
+       
+    end,
+  
+})
+
 -- 3. Capacités LSP
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities.textDocument.completion.completionItem = {
@@ -485,74 +531,64 @@ capabilities.workspace = {
   didChangeWatchedFiles = { dynamicRegistration = true },
 }
 
--- 4. Configuration rust-analyzer 
 vim.lsp.config('rust_analyzer', {
+    on_attach = on_attach,
+    capabilities = capabilities,
+    cmd = { vim.env.HOME .. '/.cargo/bin/rust-analyzer' },
+    filetypes = { 'rust' },
+    root_markers = { "Cargo.toml" },
+    single_file_support = true,
 
-  on_attach = on_attach,
+    settings = {
+        ['rust-analyzer'] = {
+            files = {
+                excludeDirs = { "target" }
+            },
+            cargo = {
+                buildScripts = {
+                    enable = true,
+                },
+                allFeatures = true,
+                loadOutDirsFromCheck = false,
+                watch = true,
+            },
+            diagnostics = {
+                enable = rust_analyzer_diagnostics_enabled,
+                disabled = { "unlinked-file" },
+            },
+            experimental = {
+                enable = true,
+            },
+            procMacro = { enable = true },
 
-  capabilities = capabilities,
+            checkOnSave = {
+                enable = true,
+                command = "clippy",
+                extraArgs = {
+                    "--",
+                    "--config-path=" .. vim.env.HOME .. "/.config/clippy/clippy.toml"
+                },
+            },
 
-  cmd = { vim.env.HOME .. '/.cargo/bin/rust-analyzer' },
+            rustfmt = {
+                extraArgs = { "--config", "max_width=120" },
+            },
 
-  filetypes = { 'rust' },
-
-  root_markers = { "Cargo.toml", ".git" },
- 
-  single_file_support = true,
-
-  settings = {
-    ['rust-analyzer'] = {
-      files = {
-        excludeDirs = { "target" }
-      },
-      cargo = {
-        buildScripts = {
-          enable = true,    -- Active l'analyse des build scripts
+            lens = { enable = true },
+            inlayHints = {
+                enable = true,
+                chainingHints = true,
+            },
         },
-        allFeatures = true, -- Active toutes les features pour l'analyse
-        loadOutDirsFromCheck = false,
-        watch = true,
-      },
-
-      diagnostics = {
-           enable = rust_analyzer_diagnostics_enabled,
-           disabled = {"unlinked-file"},  -- Désactive le warning pour les fichiers non liés
-        },
-
-        experimental = {
-          enable = true,        -- Active les fonctionnalités expérimentales (meilleure détection)
-        },
-      procMacro = { enable = true },
-
-      checkOnSave = {
-        enable = true,
-        command = "clippy",  -- Gardez clippy pour plus de rigueur
-      },
-
-      rustfmt = {
-        extraArgs = { "--config", "max_width=120" },
-      },
-
-      lens = { enable = true },  -- Affiche les références/implementation
-
-      inlayHints = {
-        enable = true,
-        chainingHints = true,  -- Utile pour les méthodes enchaînées
-      },
     },
-  },
 
-  before_init = function(init_params, config)
-    if config.settings and config.settings['rust-analyzer'] then
-      init_params.initializationOptions = config.settings['rust-analyzer']
-    end
-  end,
-
-
-
--- LspInfo
-log("✅ Init server RUST !")
+    before_init = function(init_params, config)
+        if config.settings and config.settings['rust-analyzer'] then
+            init_params.initializationOptions = config.settings['rust-analyzer']
+        end
+    end,
 })
+
 
 -- 5. Active le LSP 
 vim.lsp.enable("rust_analyzer")
@@ -622,61 +658,145 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
---______________________________________________________________
+--_________________________________________________________
 -- F2-formate le projet
 --______________________________________________________________
 vim.keymap.set('n', '<F2>', function()
-  local cwd = vim.fn.getcwd()
-  print("Formatage dans : " .. cwd)
-  local output = vim.fn.system('cd ' .. cwd .. ' && cargo  fmt  -q  --all 2>&1')
-  if vim.v.shell_error == 0 then
-    log("✅ Projet formaté !")
-    print("✅ Projet formaté !")
-    vim.cmd('checktime')  -- Recharge les fichiers modifiés
-  else
-    print("⚠️ Échec : " .. output)
-  end
-end, { desc = "Formater le projet (F2)", silent = false })
+    local cwd = vim.fn.getcwd()
+    print("Formatage dans : " .. cwd)
 
+    -- Utilise cargo +nightly fmt pour respecter votre rustfmt.toml
+    local cmd = string.format(
+        'cd %s && cargo +nightly fmt -- --config-path ~/.config/rustfmt/rustfmt.toml 2>&1',
+        cwd
+    )
+    local output = vim.fn.system(cmd)
+
+    if vim.v.shell_error == 0 then
+        print("✅ Projet formaté avec des tabulations !")
+
+        -- Recharge le buffer actuel pour synchroniser avec le fichier formaté
+        vim.cmd('checktime')
+        vim.cmd('e!')
+
+        -- Rafraîchit indent-blankline pour afficher correctement les tabulations
+        vim.schedule(function()
+            local status_ok, ibl = pcall(require, "ibl")
+            if status_ok then
+                ibl.refresh()
+            end
+        end)
+    else
+        print("⚠️ Échec : " .. output)
+    end
+end, { desc = "Formater le projet avec des tabulations (F2)", silent = false })
 
 --______________________________________________________________
--- Récupère le nom du package Rust dans le répertoire courant
+-- F3-formate le package
 --______________________________________________________________
+
+-- Fonction pour récupérer le nom du package Rust depuis Cargo.toml
 local function get_rust_package_name()
-  local cwd = vim.fn.getcwd()
-  local cmd = string.format('cd %s && cargo metadata --format-version=1 --no-deps 2>/dev/null | jq -r \'.packages[] | select(.manifest_path | contains("%s")) | .name\'', cwd, cwd)
-  local output = vim.fn.system(cmd)
-  if vim.v.shell_error == 0 and output ~= "" then
-    return output:gsub("%s+", "") -- Nettoie les espaces/retours à la ligne
-  end
-  return nil
+    local cargo_toml_path = vim.fn.getcwd() .. "/Cargo.toml"
+    if vim.fn.filereadable(cargo_toml_path) ~= 1 then
+        return nil  -- Aucun Cargo.toml trouvé
+    end
+
+    -- Lit le contenu de Cargo.toml
+    local cargo_toml = vim.fn.readfile(cargo_toml_path)
+    if not cargo_toml then
+        return nil
+    end
+
+    -- Cherche la ligne avec "name ="
+    for _, line in ipairs(cargo_toml) do
+        local name = line:match('^%s*name%s*=%s*"([^"]+)"')
+        if name then
+            return name
+        end
+    end
+
+    return nil  -- Aucun nom de package trouvé
 end
 
---______________________________________________________________
--- F2-formate le package
---______________________________________________________________
+
+
 vim.keymap.set('n', '<F3>', function()
-  local cwd = vim.fn.getcwd()
-  print("Formatage dans : " .. cwd)
+    local cwd = vim.fn.getcwd()
+    print("Formatage dans : " .. cwd)
 
-  -- Récupère le nom du package
-  local package_name = get_rust_package_name()
-  if not package_name then
-    vim.notify("⚠️ Aucun package Rust trouvé dans ce répertoire.", vim.log.levels.WARN)
-    return
-  end
+    -- Récupère le nom du package
+    local package_name = get_rust_package_name()
+    if not package_name then
+        vim.notify("⚠️ Aucun package Rust trouvé dans ce répertoire.", vim.log.levels.WARN)
+        return
+    end
 
-  -- Exécute cargo fmt pour ce package
-  local cmd = string.format('cd %s && cargo fmt -v --package="%s" 2>&1', cwd, package_name)
-  local output = vim.fn.system(cmd)
+    -- Exécute cargo fmt avec --package AVANT --
+    local cmd = string.format(
+        'cd %s && cargo +nightly fmt  --package="%s" -- --config-path ~/.config/rustfmt/rustfmt.toml -v 2>&1',
+        cwd,
+        package_name
+    )
+    local output = vim.fn.system(cmd)
 
-  if vim.v.shell_error == 0 then
-    vim.notify("✅ Package '" .. package_name .. "' formaté !", vim.log.levels.INFO)
-    vim.cmd('checktime')
-  else
-    vim.notify("⚠️ Échec pour '" .. package_name .. "' : " .. output, vim.log.levels.ERROR)
-  end
+    if vim.v.shell_error == 0 then
+        vim.notify("✅ Package '" .. package_name .. "' formaté !", vim.log.levels.INFO)
+        vim.cmd('checktime')
+        vim.cmd('e!')
+    else
+        vim.notify("⚠️ Échec pour '" .. package_name .. "' : " .. output, vim.log.levels.ERROR)
+    end
 end, { desc = "Formater le package Rust courant (F3)", silent = false })
+
+
+
+
+--______________________________________________________________
+-- F4
+--Clippy est la collection officielle de linters 
+-- pour le langage de programmation Rust, 
+-- conçue pour détecter les erreurs courantes et améliorer la cohérence du code.
+--______________________________________________________________
+
+vim.keymap.set('n', '<F4>', function()
+ 
+    local cmd = string.format(
+        'CLIPPY_CONFIG_PATH=%s/.config/clippy/clippy.toml cargo clippy --all-targets --message-format=short -- -W clippy::all 2>&1',
+        vim.env.HOME
+    )
+    local output = vim.fn.system(cmd)
+
+    if output ~= "" and not output:match("Finished") then
+        vim.cmd('new | setlocal buftype=nofile | setlocal bufhidden=hide | setlocal noswapfile')
+        vim.api.nvim_buf_set_lines(0, 0, -1, false, vim.split(output, "\n"))
+        vim.cmd('setlocal filetype=text | setlocal wrap | setlocal modifiable')
+        vim.cmd('1')
+        print("⚠️ Résultats de Clippy (voir buffer)")
+    else
+        print("✅ Aucune erreur ou avertissement détecté par Clippy")
+    end
+    
+    -- 5. Gestion visuelle (NonText)
+    vim.schedule(function()
+        vim.cmd([[highlight NonText guifg=#5a0d0d cterm=NONE guibg=NONE]])
+        
+        -- Force le rafraîchissement d'indent-blankline après le retab
+        local status_ok, ibl = pcall(require, "ibl")
+        if status_ok then
+            ibl.refresh()
+        end
+    end)
+    
+    
+end, { desc = "Exécuter Clippy (F4)" })
+
+
+
+
+
+
+
 
 
 --______________________________________________________________
@@ -883,29 +1003,6 @@ vim.cmd([[
 ]])
 
 
--- Fonction pour remplacer les espaces par des tabulations
-local function convert_spaces_to_tabs()
-  local spaces_to_replace = vim.opt.shiftwidth._value  -- Utilise la valeur de shiftwidth
-  local spaces_pattern = string.rep(" ", spaces_to_replace)
-  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-
-  for i, line in ipairs(lines) do
-    local new_line, count = line:gsub(spaces_pattern, "\t")
-    if count > 0 then
-      vim.api.nvim_buf_set_lines(0, i - 1, i, false, { new_line })
-    end
-  end
-end
-
--- Déclenche cette fonction avant l'enregistrement
-vim.api.nvim_create_autocmd("BufWritePre", {
-  pattern = "*.rs",
-  callback = function()
-    convert_spaces_to_tabs()
-  end,
-})
-
-
 
 --______________________________________________________________
 --les commandes 
@@ -1063,6 +1160,7 @@ vim.keymap.set('n', 'u', 'u', { desc = "Annuler" })                             
 vim.keymap.set('n', 'r', '<C-r>', { desc = "Rétablir" })                             -- `redo` (Neovim: `<C-r>`)
 vim.keymap.set('n', 'n', 'n', { desc = "Rechercher l'occurrence suivante" })         -- `search_next` (déjà natif)
 vim.keymap.set('n', 'N', 'N', { desc = "Rechercher l'occurrence précédente" })       -- `search_prev` (déjà natif)
+vim.keymap.set('n', 'O', 'O<Esc>', { desc = "Nouvelle ligne avant (sans insertion)" })
 vim.keymap.set('n', 'o', '<Esc>o<Esc>', { desc = "New ligne" })                      -- `new ligne`)
 
 
@@ -1126,14 +1224,14 @@ require("fzf-lua").setup({
     },
   },
   files = {
-    cmd = "fd --type f --hidden --exclude .git --exclude target '\\.(rs|sh|c|cpp)$'",
+    cmd = "fd --type f --hidden --exclude .git --exclude target '\\.(rs|c|cpp)$'",
     prompt = ' Fichiers> ',
     header = "Explorer| ENTREE: ouvrir | ESC: quitter",
     previewer = "bat",
     git_icons = true,
   },
   oldfiles = {
-    cmd = "fd --type f --hidden --exclude .git --exclude target '\\.(rs|sh|c|cpp)$'",
+    cmd = "fd --type f --hidden --exclude .git --exclude target '\\.(rs|c|cpp)$'",
     prompt = ' Historique> ',
     header = "Historique| ENTREE: ouvrir | ESC: quitter",
     previewer = "bat",
@@ -1248,22 +1346,39 @@ vim.keymap.set({'n', 'i', 'v'}, '<C-l>', function()
 end, { desc = "Purge TOTALE (sauf buffer actuel)", silent = false })
 
 
-
 --______________________________________________________________
 -- sauvegarde  
-vim.keymap.set({'i','n'}, '<C-s>', function() 
-vim.cmd(':write!')
+vim.keymap.set({'i','n'}, '<C-s>', function()
+    -- 1. Sortir proprement du mode insertion avant de manipuler le texte
+    if vim.fn.mode() == 'i' then 
+        vim.cmd('stopinsert') 
+    end
+    vim.opt.expandtab = false -- Convertit les tabulations en espaces
+    vim.opt.tabstop = 4      -- Nombre d'espaces par tabulation
+    vim.opt.shiftwidth = 4   -- Taille de l'indentation automatique
+    -- 2. Convertit les espaces en tabulations au début des lignes
+    vim.cmd('%retab!')
 
-if vim.fn.mode() == 'i' then vim.cmd('stopinsert') end
-vim.cmd([[ execute "normal! \<ESC>" ]])
+    -- 3. Sauvegarde forcée du fichier
+    vim.cmd('write!')
 
-  vim.schedule(function()
-		vim.cmd([[highlight NonText guifg=#5a0d0d cterm=NONE guibg=NONE]])
-  end)
-  
-local src_name = vim.fn.expand('%:p')
-log("✅ sauvegarde" .. src_name)
-end, { desc = "Sauvegarder" })
+
+    -- 5. Gestion visuelle (NonText)
+    vim.schedule(function()
+        vim.cmd([[highlight NonText guifg=#5a0d0d cterm=NONE guibg=NONE]])
+        
+        -- Force le rafraîchissement d'indent-blankline après le retab
+        local status_ok, ibl = pcall(require, "ibl")
+        if status_ok then
+            ibl.refresh()
+        end
+    end)
+
+    -- 6. Log de confirmation
+    local src_name = vim.fn.expand('%:p')
+    log("✅ sauvegarde : " .. src_name)
+end, { desc = "Sauvegarder", silent = true })
+
 
 --______________________________________________________________
 

@@ -17,7 +17,7 @@ AdwAlertDialog *Alertdialog;
 
 GPid child_pid = 0;
 
-const bool ALT_F4 = false;  // true very special ???
+const bool ALT_F4 = true;  // true very special ???
 
 
 #define WORKPGM		"nvim"

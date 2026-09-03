@@ -72,7 +72,6 @@ do
     f_dsplyPos  2  24 $faGras$fcJaune'------------compile cpp-----------------'
 
     f_dsplyPos  3  20 $faGras$fcRouge'  1'; f_dsplyPos  3  24 $faGras$fcGreen 'TermGTK4'
-    f_dsplyPos  4  20 $faGras$fcRouge'  2'; f_dsplyPos  4  24 $faGras$fcGreen 'TermRust'
 
     f_dsplyPos  5  24 $faGras$fcJaune'------------compile Rust----------------'
 
@@ -106,9 +105,6 @@ do
 # APPTERM
         1)
             $HOME/.Terminal/dispatch.sh $envCPP  $LIBPROJECT   "TermGTK4"
-        ;;
-        2)
-            $HOME/.Terminal/dispatch.sh $envCPP  $LIBPROJECT   "TermRust"
         ;;
 
 

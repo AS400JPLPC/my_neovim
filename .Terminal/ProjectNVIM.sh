@@ -13,13 +13,12 @@ reset > /dev/null
 	echo -en '\033]11;#000000\007'
 	echo -en '\033]10;#FFFFFF\007'
 }
-
+f_cls
 
 #=========================
 # Call Terminal VTE
 #=========================
 
 cd $2
-#nohup  $HOME/.Terminal/TermADW $1 $2 > /dev/null 2>&1 &
-nohup  alacritty   -e nvim  > /dev/null 2>&1 &
+nohup  $HOME/.Terminal/TermADW $1 $2 > /dev/null 2>&1 &
 exit 0
