@@ -169,7 +169,7 @@ minor -> <ESC> color notext
 <BR/>
 **2026-09-03 21:00** After the latest Neovim update, I ran into some issues that led me to start over and build a terminal in Rust.
 At the same time, I fixed some issues that had arisen due to the change in terminal type.  
-[Terminal Rust](https://github.com/AS400JPLPC/term_rust)`
+[Terminal Rust](https://github.com/AS400JPLPC/term_rust)
 
 <BR/>
 <BR/>
