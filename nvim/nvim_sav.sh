@@ -31,7 +31,6 @@ cp ~/.config/nvim/init.lua ~/GIT/my_neovim/nvim/
 cp ~/nvim_sav.sh ~/GIT/my_neovim/nvim/
 cp ~/nvim_insatll.sh ~/GIT/my_neovim/nvim/
 cp ~/get_plugins.sh ~/GIT/my_neovim/nvim/
-cp ~/update_plugins.sh ~/GIT/my_neovim/nvim/
 cp ~/.config/nvim/Neovim.png ~/GIT/my_neovim/nvim/
 cp ~/.config/nvim/Tree.png ~/GIT/my_neovim/nvim/
 cp ~/.config/nvim/fonction.odt ~/GIT/my_neovim/nvim/
