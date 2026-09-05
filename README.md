@@ -24,24 +24,25 @@ Because I can't spend all my time configuring an editor... 2 month Because I can
 **THANK YOU to the OPEN-SOURCE community**,   
   <BR/><BR/>
 
-|  | Fonctionnalité                  | implémentation          |                             |            |                          |
-|--|---------------------------------|-------------------------|-----------------------------|------------|--------------------------|
+|  | Fonctionnalité                  | implémentation          |                              |            |                          |
+|--|---------------------------------|-------------------------|------------------------------|------------|--------------------------|
 |✅ |     Rust                        | nvim-comment plugin     |<C-t>                        |            |cohérence maximale        |
 |✅ |     Rust                        | ibl plugin              |¶, tabulations \t            |editorconfig|cohérence maximale        |
 |✅ | Navigation standard             | leader mappings         |Ctrl+c/Ctrl+v ......         |Neovims.png |                          |
 |✅ | Traçabilité                     | F5 Logs structurés      |Déjà intégré à votre workflow|            |utilisé goto definition   |
-|✅ | Formatage                       | F2 (cargo fmt)          |Standard et rapide           |            |                          |
+|✅ | Formatage                       | F2 / F3 (cargo fmt)     |Standard et rapide           |            |                          |
+|✅ | Deteection error                | F4 Clippy               |Standard et rapide           |            |                          |
 |✅ | Intégrité du projet             | F12 (cargo build check) |Vérification en un clic      |dialog      |                          |
 |✅ | Tabulations libres              | noexpandtab             |tabstop=4                    |            |Respect de vos préférences|
 |✅ | Gestion des buffers             | C-l Purge via raccourcis|Nettoyage facile             |            |                          |
 |✅ | Explorateur                     | C-e fzf                 |                             |            |Navigation fluide         |
 |✅ | Explorateur                     | C-f fzf     hold-file   |                             |            |Navigation fluide         |
-|✅ | Terminal cohérent               | Alacritty or VTE        |mêmes couleurs/comportements |            |Uniformité visuelle       |
+|✅ | Terminal cohérent               | VTE  / VTE Rust         |mêmes couleurs/comportements |            |Uniformité visuelle       |
 |✅ | Control d'intégrité au demarrage| fonction intégrée       |Automatique                  |dialog      |                          |
 |✅ | Alt-r reference  gd Definition  | fonction intégrée       |utilise grep / refrence      |dialog      |Intuitif et efficace      |
 |✅ | local tempdir                   | fonction intégrée       |"~/.cache/nvim/tmp/tmp_"     |            |                          |
  
- 
+And lots of other tips   -Neovim.png
  
 
 <BR/><BR/>
@@ -167,7 +168,7 @@ minor -> <ESC> color notext
 
 <BR/>
 <BR/>
-**2026-09-03 21:00** After the latest Neovim update, I ran into some issues that led me to start over and build a terminal in Rust.
+**2026-09-03 21:00** After the latest Neovim update 12 , I ran into some issues that led me to start over and build a terminal in Rust.
 At the same time, I fixed some issues that had arisen due to the change in terminal type.  
 [Terminal Rust](https://github.com/AS400JPLPC/term_rust)
 
