@@ -123,7 +123,7 @@ vim.keymap.set('n', ':',
 
 
 -- active for test 
-vim.keymap.del('n', ':')   -- ON
+--vim.keymap.del('n', ':')   -- ON
 
 
 
@@ -667,7 +667,7 @@ vim.keymap.set('n', '<F2>', function()
 
     -- Utilise cargo +nightly fmt pour respecter votre rustfmt.toml
     local cmd = string.format(
-        'cd %s && cargo +nightly fmt -- --config-path ~/.config/rustfmt/rustfmt.toml 2>&1',
+        'cd %s && cargo  fmt -- --config-path ~/.config/rustfmt/rustfmt.toml 2>&1',
         cwd
     )
     local output = vim.fn.system(cmd)
@@ -732,9 +732,9 @@ vim.keymap.set('n', '<F3>', function()
         return
     end
 
-    -- Exécute cargo fmt avec --package AVANT --
+    -- Exécute cargo fmt +nightly avec --package AVANT --
     local cmd = string.format(
-        'cd %s && cargo +nightly fmt  --package="%s" -- --config-path ~/.config/rustfmt/rustfmt.toml -v 2>&1',
+        'cd %s && cargo  fmt  --package="%s" -- --config-path ~/.config/rustfmt/rustfmt.toml -v 2>&1',
         cwd,
         package_name
     )
@@ -1053,7 +1053,18 @@ vim.keymap.set('n', '<A-u>', ':set list!<CR>', { desc = "Basculer l'affichage de
 
 vim.keymap.set('n', '<A-v>', ':vsplit<CR>:wincmd l<CR>', { desc = "Split verticale" })  -- `vsplit`
 
-vim.keymap.set('n', '<A-w>', ':vnew<CR>:wincmd l<CR>', { desc = "new Split verticale" })  -- `vsplit_new`
+vim.keymap.set('n', '<A-w>', function()
+    -- Crée une nouvelle fenêtre verticale
+    vim.cmd('vnew')
+
+    -- Utilise fzf-lua pour sélectionner un fichier Rust
+    require("fzf-lua").files({
+        -- Filtre pour afficher uniquement les fichiers Rust
+        cmd = "find . -name '*.rs' -type f",
+        -- Ou utilisez une commande plus rapide comme `fd` si disponible
+        -- cmd = "fd -t f -e rs",
+    })
+end, { desc = "Nouvelle fenêtre verticale avec fichier Rust (fzf-lua)" })
 
 
 local function close_current_split()

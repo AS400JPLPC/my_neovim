@@ -36,7 +36,8 @@ Because I can't spend all my time configuring an editor... 2 month Because I can
 |✅ | Tabulations libres              | noexpandtab             |tabstop=4                    |            |Respect de vos préférences|
 |✅ | Gestion des buffers             | C-l Purge via raccourcis|Nettoyage facile             |            |                          |
 |✅ | Explorateur                     | C-e fzf                 |                             |            |Navigation fluide         |
-|✅ | Explorateur                     | C-f fzf     hold-file   |                             |            |Navigation fluide         |
+|✅ | Explorateur                     | C-f fzf                 |                             |            |Navigation fluide         |
+|✅ | Explorateur                     | A-W fzf                 |new vertical                 |            |Navigation fluide         |
 |✅ | Terminal cohérent               | VTE  / VTE Rust         |mêmes couleurs/comportements |            |Uniformité visuelle       |
 |✅ | Control d'intégrité au demarrage| fonction intégrée       |Automatique                  |dialog      |                          |
 |✅ | Alt-r reference  gd Definition  | fonction intégrée       |utilise grep / refrence      |dialog      |Intuitif et efficace      |
@@ -77,6 +78,8 @@ the name of your source is displayed in the window title
 “C-e” directly accesses the explorer via “fzf plugin” and closes buffers without saving them.      
   
 “C-f” directly accesses the explorer via “fzf plugin - hold-file” and closes buffers without saving them.  
+  
+“A-V” directly accesses the explorer via “fzf plugin - new buffer vertical.  
   
 I'm leaving you a source  to wrap your Neovim, you can adapt it for terminal applications.(VTE4)  
    
@@ -172,6 +175,9 @@ minor -> <ESC> color notext
 At the same time, I fixed some issues that had arisen due to the change in terminal type.  
 [Terminal Rust](https://github.com/AS400JPLPC/term_rust)
 
+<BR/>
+<BR/>
+**2026-09-11 15:20** update function A-w add vertiacal fz.
 <BR/>
 <BR/>
 
