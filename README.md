@@ -29,9 +29,11 @@ Because I can't spend all my time configuring an editor... 2 month Because I can
 |✅ |     Rust                        | nvim-comment plugin     |<C-t>                        |            |cohérence maximale        |
 |✅ |     Rust                        | ibl plugin              |¶, tabulations \t            |editorconfig|cohérence maximale        |
 |✅ | Navigation standard             | leader mappings         |Ctrl+c/Ctrl+v ......         |Neovims.png |                          |
-|✅ | Traçabilité                     | F5 Logs structurés      |Déjà intégré à votre workflow|            |utilisé goto definition   |
 |✅ | Formatage                       | F2 / F3 (cargo fmt)     |Standard et rapide           |            |                          |
 |✅ | Deteection error                | F4 Clippy               |Standard et rapide           |            |                          |
+|✅ | Traçabilité                     | F5 Logs structurés      |Déjà intégré à votre workflow|            |utilisé goto definition   |
+|✅ | Traçabilité                     | F7 clear log            |Standard et rapide           |            |                          |
+|✅ | Read-only / modifiable          | F9 read_only/modifiable |Standard et rapide           |            |                          |
 |✅ | Intégrité du projet             | F12 (cargo build check) |Vérification en un clic      |dialog      |                          |
 |✅ | Tabulations libres              | noexpandtab             |tabstop=4                    |            |Respect de vos préférences|
 |✅ | Gestion des buffers             | C-l Purge via raccourcis|Nettoyage facile             |            |                          |
@@ -180,6 +182,15 @@ At the same time, I fixed some issues that had arisen due to the change in termi
 **2026-09-11 15:20** update function A-w add vertiacal fz.
 <BR/>
 <BR/>
+
+
+<BR/>
+<BR/>
+**2026-09-24 19:06** add F9 read-only /modifable.
+<BR/>
+<BR/>
+
+
 
 <BR/>
 The F12 function has been unraveled, and shows you how to use the concept of dialogue for your errors.

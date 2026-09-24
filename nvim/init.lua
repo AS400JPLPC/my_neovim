@@ -70,9 +70,9 @@ vim.fn.mkdir(tempdir, "p")  -- Crée le dossier s'il n'existe pas
 -- maping base  key 
 --=============================================
 
--- Désactive toutes les touches de fonction SAUF F2, F5 et F12
+-- Désactive toutes les touches de fonction SAUF F2 F3 F4 F5 F7 F9 et F12
 for i = 1, 12 do
-  if i ~= 2 and i ~= 3 and i ~= 4 and i ~= 5 and i ~= 7 and i ~= 12 then  -- Garde F2, F5 et F12
+  if i ~= 2 and i ~= 3 and i ~= 4 and i ~= 5 and i ~= 7 and  i ~= 9 and i ~= 12 then  -- Garde F2, F5 et F12
     vim.keymap.set({'n', 'i', 'v'}, '<F' .. i .. '>', '<Nop>')
   end
   
@@ -82,14 +82,9 @@ end
 
 -- Autorise uniquement les commandes de base
 local allowed_commands = {
-  y = true,   -- copier (yank)
-  p = true,   -- coller (put)
-  u = true,   -- annuler (undo)
   n = true,   -- recherche suivante
   N = true,   -- recherche précédente
   v = true,   -- mode visuel
-  o = true,   -- modes insertion
-
 }
 
 --  o = true,   -- modes insertion
@@ -123,7 +118,7 @@ vim.keymap.set('n', ':',
 
 
 -- active for test 
---vim.keymap.del('n', ':')   -- ON
+-- vim.keymap.del('n', ':')   -- ON
 
 
 
@@ -186,6 +181,17 @@ vim.keymap.set({'n','v'}, 'd', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 'a', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 's', '<Esc>')  -- `OFF`
 vim.keymap.set('n', 'd', '<Esc>')  -- `OFF`
+
+vim.keymap.set('n', 'p', '<Esc>')  -- `OFF`
+vim.keymap.set('n', 'y', '<Esc>')  -- `OFF`
+vim.keymap.set('n', 'e', '<Esc>')  -- `OFF`
+vim.keymap.set('n', 'b', '<Esc>')  -- `OFF`
+vim.keymap.set('n', 'c', '<Esc>')  -- `OFF`
+vim.keymap.set('n', 't', '<Esc>')  -- `OFF`
+vim.keymap.set('n', 'z', '<Esc>')  -- `OFF`
+vim.keymap.set('n', 'f', '<Esc>')  -- `OFF`
+vim.keymap.set('v', 'c', '<Esc>')  -- `OFF`
+
 --*****************************************************************
 
 -- Configuration des couleurs (appelée une seule fois)
@@ -321,7 +327,6 @@ vim.keymap.set('n', '<F7>', function()
 end)
 
 
-
 --=============================================
 -- Désactive remplacement 
 --=============================================
@@ -346,9 +351,8 @@ vim.g.clipboard = {
   cache_enabled = true,
 }
 -- Mappings (corrigés et testés)
-vim.keymap.set('v', '<C-c>', '"*y', { noremap = true, desc = "Copy to primary" })
-vim.keymap.set({'n', 'v'}, '<C-v>', '"*p', { noremap = true, desc = "Paste from clipboard" })
-vim.keymap.set('i', '<C-v>', '<C-r>+', { noremap = true, desc = "Paste in insert mode" })
+vim.keymap.set({'v','i'}, '<C-c>', '"*y', { noremap = true, desc = "Copy to primary" })
+vim.keymap.set({'n', 'v','i'}, '<C-v>', '"*p', { noremap = true, desc = "Paste from clipboard" })
 vim.keymap.set({'n', 'v'}, '<C-d>', '"_d', { noremap = true, desc = "Delete selected text" })
 
 
@@ -1174,7 +1178,20 @@ vim.keymap.set('n', 'N', 'N', { desc = "Rechercher l'occurrence précédente" })
 vim.keymap.set('n', 'O', 'O<Esc>', { desc = "Nouvelle ligne avant (sans insertion)" })
 vim.keymap.set('n', 'o', '<Esc>o<Esc>', { desc = "New ligne" })                      -- `new ligne`)
 
-
+--=============================================
+-- Bascule le buffer courant en lecture seule / modifiable
+--=============================================
+vim.keymap.set('n', '<F9>', function()
+    if vim.bo.readonly then
+        vim.bo.readonly = false
+        vim.bo.modifiable = true
+        print("✅ Buffer modifiable")
+    else
+        vim.bo.readonly = true
+        vim.bo.modifiable = false
+        print("🔒 Buffer en lecture seule")
+    end
+end, { desc = "Bascule lecture seule (F9)" })
 
 --______________________________________________________________
 
@@ -1190,8 +1207,13 @@ vim.keymap.set({'n','i','v','s','x'}, '<Esc>', function()
 end, { silent = true, noremap = true })
 
 vim.keymap.set('n', '<Insert>',function()
+    if vim.bo.modifiable  then
 		vim.cmd(":startinsert")
 		vim.cmd([[highlight CursorLine guibg=#00005f ctermbg=17]])
+	else
+        vim.cmd('stopinsert')
+	end
+	
 end,{ desc = "mode insert" })  -- `mode Insert`
 
 vim.keymap.set('n', '<C-d>', 'dd', { desc = "Supprimer ligne" })  -- `delete_char_forward
