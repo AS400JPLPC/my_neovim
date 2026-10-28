@@ -331,13 +331,13 @@ end)
 -- Désactive remplacement 
 --=============================================
 
-vim.keymap.set({'i','v'}, '<Ins>', function()
-    vim.cmd('stopinsert') 
+--vim.keymap.set({'i','v'}, '<Ins>', function()
+--    vim.cmd('stopinsert') 
 
-    vim.schedule(function()
-        vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235 guifg=NONE ctermfg=NONE]])
-    end)
-end, { silent = true, noremap = true })
+--    vim.schedule(function()
+--        vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235 guifg=NONE ctermfg=NONE]])
+--    end)
+--end, { silent = true, noremap = true })
 
 
 -- =============================================
@@ -1196,25 +1196,42 @@ end, { desc = "Bascule lecture seule (F9)" })
 --______________________________________________________________
 
 vim.keymap.set({'n','i','v','s','x'}, '<Esc>', function()
+
+-- ici v et "R' on force stopinsert
+   if vim.fn.mode() == 'v' then
+        vim.cmd([[execute "normal! \<ESC>"]])
+        vim.cmd('stopinsert')
+   end
+
+    if vim.fn.mode() == 'R' then
+        vim.cmd('stopinsert')
+    end
     if vim.fn.mode() == 'i' then
         vim.cmd('stopinsert')
-    else
-        vim.cmd([[execute "normal! \<ESC>"]])
     end
+    
+    vim.cmd([[execute "normal! \<ESC>"]])
+
+
     vim.schedule(function()
         vim.cmd([[highlight CursorLine guibg=#262626 ctermbg=235 guifg=NONE ctermfg=NONE]])
     end)
+
 end, { silent = true, noremap = true })
 
+
 vim.keymap.set('n', '<Insert>',function()
+   local view = vim.fn.winsaveview()
     if vim.bo.modifiable  then
 		vim.cmd(":startinsert")
 		vim.cmd([[highlight CursorLine guibg=#00005f ctermbg=17]])
 	else
         vim.cmd('stopinsert')
 	end
-	
+	vim.fn.winrestview(view)
 end,{ desc = "mode insert" })  -- `mode Insert`
+
+
 
 vim.keymap.set('n', '<C-d>', 'dd', { desc = "Supprimer ligne" })  -- `delete_char_forward
 vim.keymap.set('n', '<Del>', 'x', { desc = "Supprimer le caractère sous le curseur" })  -- `delete_char_forward`
