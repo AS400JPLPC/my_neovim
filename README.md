@@ -193,7 +193,7 @@ At the same time, I fixed some issues that had arisen due to the change in termi
 
 <BR/>
 <BR/>
-**2026-010_28 19:54** add F9 control-clipy.
+**2026-010_28 19:54** add F4 control-clipy.
 <BR/>
 <BR/>
 
